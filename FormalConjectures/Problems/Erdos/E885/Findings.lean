@@ -6,4 +6,7 @@ import FormalConjectures.Problems.Erdos.E885.Findings.BSet
 import FormalConjectures.Problems.Erdos.E885.Findings.ColumnLaw
 import FormalConjectures.Problems.Erdos.E885.Findings.RowComplex
 import FormalConjectures.Problems.Erdos.E885.Findings.Spectrum
+import FormalConjectures.Problems.Erdos.E885.Findings.TerminalSpectrum
 import FormalConjectures.Problems.Erdos.E885.Findings.SquareTranslate
+import FormalConjectures.Problems.Erdos.E885.Findings.LiftSurface
+import FormalConjectures.Problems.Erdos.E885.Findings.ObstructionDescent

@@ -10,3 +10,4 @@ import FormalConjectures.Problems.Erdos.E885.Findings.TerminalSpectrum
 import FormalConjectures.Problems.Erdos.E885.Findings.SquareTranslate
 import FormalConjectures.Problems.Erdos.E885.Findings.LiftSurface
 import FormalConjectures.Problems.Erdos.E885.Findings.ObstructionDescent
+import FormalConjectures.Problems.Erdos.E885.Findings.GuidepostRigidity

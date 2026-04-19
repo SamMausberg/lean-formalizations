@@ -66,8 +66,7 @@ only statements directly supported by the Lean source remain.
 \end{center}
 
 \begin{abstract}
-We record two results related to Erd\H{o}s Problem~E885 that are fully
-machine-verified in Lean\,4 with Mathlib.
+We record two Lean-backed results related to Erd\H{o}s Problem~E885.
 First, the explicit triple
 \[
   (756000,\;15971200,\;45130176)
@@ -78,10 +77,19 @@ anchored cap
   |Y(a,b,c)| \le 4
 \]
 is false; this does not settle the original $k=5$ problem.
+The formalized Lean input here is the fifteen-identity packet
+\texttt{new\_3row\_5col\_packet}, and the displayed lower bound is its
+immediate finite corollary.
 Second, the guidepost seed
 \[
   (79200,\;227205,\;1258560)
 \]
+which is the nonzero part of Choudhry's explicit $(4,4)$ square-sumset
+example
+\[
+  \{0,\;79200,\;227205,\;1258560\}
+\]
+\cite{Cho25},
 is rigid: its common positive factor-difference set is exactly
 \[
   \{36,\;468,\;692,\;1028\}.
@@ -185,9 +193,14 @@ zero-shift formulation \cite{DuEl13}.
 Elsholtz and Wurzinger later emphasize that $|A|=3$ can support large
 $B$, while for $|A|\ge 4$ an absolute bound on $|B|$ is conjecturally
 implied by Bombieri--Lang \cite{ElWu24}.
+Very recently, Bremner, Elsholtz, and Ulas proved that there are
+infinitely many $3$-dimensional Hilbert cubes in the set of squares
+\cite{BeElUl26}. This is not the same as the anchored positive-shift
+setting considered here, but it is close in spirit.
 Choudhry gives explicit $(5,3)$ and $(4,4)$ square-sumset constructions;
-one displayed $(5,3)$ example uses
-$B=\{0,\;3588000,\;8527200\}$ \cite{Cho25}.
+displayed examples include
+$B=\{0,\;3588000,\;8527200\}$ in the $(5,3)$ case and
+$B=\{0,\;79200,\;227205,\;1258560\}$ in the $(4,4)$ case \cite{Cho25}.
 The present statement records an explicit positive three-shift anchored
 square-translate computation.
 It does \emph{not} solve Erd\H{o}s Problem~E885 itself:
@@ -202,10 +215,16 @@ All named results in this section are formalized in
 \texttt{GuidepostRigidity.lean}.
 
 \begin{definition}[Guidepost seed]
-The \emph{guidepost seed} is the triple
+For the rigidity discussion we isolate the triple
 \[
   (n_1,n_2,n_3) \;=\; (79200,\;227205,\;1258560).
 \]
+This is the nonzero part of Choudhry's explicit $(4,4)$ square-sumset
+example
+\[
+  \{0,\;79200,\;227205,\;1258560\}
+\]
+from \cite{Cho25}.
 Its row gaps are
 \[
   \Delta_1 = n_2-n_1 = 148005,
@@ -292,16 +311,17 @@ For every positive integer $d$,
 In particular, the guidepost seed has exactly four common positive factor
 differences.
 \end{theorem}
-\noindent Formalized as
-\texttt{guidepost\_positive\_common\_factorDiffSet\_iff} (the exact
-biconditional) and \texttt{guidepost\_seed\_rigid} (the set equality and
-cardinality statement).
+\noindent The exact biconditional is formalized as
+\texttt{guidepost\_positive\_common\_factorDiffSet\_iff}.
+The auxiliary Lean theorem \texttt{guidepost\_seed\_rigid} packages the
+corresponding finset equality and cardinality statement.
 
 \section{Summary}
 
-This short forum note records two fully formalized outcomes.
+This short forum note records two Lean-backed outcomes.
 \begin{itemize}[nosep]
-  \item The anchored three-shift cap is false: the triple
+  \item The explicit packet in Section~2 implies that the anchored
+    three-shift cap is false: the triple
     $(756000,\;15971200,\;45130176)$ has at least five anchored square
     translates.
   \item The guidepost seed
@@ -354,6 +374,13 @@ A. Choudhry,
 sets are perfect squares},
 arXiv:2508.07806 [math.NT], 2025.
 \href{https://doi.org/10.48550/arXiv.2508.07806}{doi:10.48550/arXiv.2508.07806}
+
+\bibitem{BeElUl26}
+A. Bremner, C. Elsholtz, and M. Ulas,
+\emph{There are infinitely many Hilbert cubes of dimension 3 in the set of
+squares},
+arXiv:2604.05459 [math.NT], submitted April 7, 2026.
+\href{https://doi.org/10.48550/arXiv.2604.05459}{doi:10.48550/arXiv.2604.05459}
 
 \end{thebibliography}
 

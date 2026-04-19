@@ -1,6 +1,7 @@
 /.lake/
 /build/
 /.DS_Store
+artifacts/
 *.ilean
 *.olean
 *.trace

@@ -34,6 +34,18 @@ lake build
 lake env lean FormalConjectures/Problems/Erdos/E119/Main.lean
 ```
 
+## Aristotle CLI
+
+The repo includes a pinned Aristotle wrapper for the E885 writeup flow:
+
+```bash
+export ARISTOTLE_API_KEY=...
+./scripts/run_aristotle_e885_writeup.sh
+```
+
+This uses `uvx --from aristotlelib@1.0.1 aristotle ...`, stages a small E885-focused
+project bundle under `artifacts/`, and downloads the result there.
+
 ## Notes
 
 - `lean-toolchain` is pinned to mathlib's current toolchain so dependency resolution stays aligned

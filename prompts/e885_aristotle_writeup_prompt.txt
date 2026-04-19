@@ -1,0 +1,54 @@
+You are working inside a Lean project that contains formal findings for Erdos Problem E885.
+
+Task:
+Generate a fresh professional LaTeX writeup covering the current E885 findings in this project.
+
+Hard requirements:
+- Produce a new self-contained LaTeX source file named `erdos885_findings_writeup.tex`.
+- Do not produce a light edit of the existing `erdos885_notes.tex`; write a fresh document.
+- Base the document on the current Lean files under `FormalConjectures/Problems/Erdos/E885/`.
+- Treat the Lean files as the source of truth for what is actually formalized.
+- Distinguish clearly between:
+  1. exact formal theorems/identities,
+  2. verified explicit computations/configurations,
+  3. partial formalizations and structural observations,
+  4. open directions.
+- Do not overclaim. If a file says it only formalizes an algebraic core or a weakened consequence, say that explicitly.
+- The document should read like a professional research writeup, not a code dump.
+
+Desired structure:
+- Title, abstract, introduction, and a short status summary of the problem.
+- Problem statement and notation.
+- Literature baseline already reflected in the project (`k = 2`, `k = 3`, and the current repository witness results).
+- Core formalized mechanisms:
+  - square-discriminant reformulation,
+  - pair-fiber structure and finiteness,
+  - anchored packets / column law / transfer laws,
+  - B-set and spectrum viewpoint,
+  - row-complex / terminal-spectrum / square-translate viewpoints.
+- Verified explicit configurations:
+  - pair/triple examples,
+  - the 3x4 configuration,
+  - guidepost rigidity,
+  - lift-surface computations,
+  - addendum computations and counterexamples now present in the findings.
+- A final section that summarizes what is formalized exactly, what is only partially formalized, and what remains open.
+- A references section using the references already present in the project where appropriate.
+
+Style requirements:
+- Use a clean professional article structure with theorem-like environments.
+- Prefer concise statements and explanations over long informal digressions.
+- Use notation consistently and define it once.
+- Include file-aware attribution in prose where useful, for example “formalized in `SquareDiscriminant.lean`”.
+- It is fine to mention the names of Lean files in the text, but the output should still read as a mathematical writeup.
+
+Project-specific guidance:
+- Read `FormalConjectures/Problems/Erdos/E885/Main.lean` for the problem statement and references.
+- Read `FormalConjectures/Problems/Erdos/E885/Findings.lean` to see the current findings inventory.
+- Read the individual files in `FormalConjectures/Problems/Erdos/E885/Findings/` and use their module docstrings and theorem names carefully.
+- Use the existing `FormalConjectures/Problems/Erdos/E885/Findings/erdos885_notes.tex` only as background context, not as the template to rewrite.
+- Make sure the newer findings files are incorporated, including the addendum-style results and the modules added after the initial Aristotle import.
+
+Output:
+- `erdos885_findings_writeup.tex`
+- optionally a short `README.md` in the result directory explaining the document structure and any compile assumptions

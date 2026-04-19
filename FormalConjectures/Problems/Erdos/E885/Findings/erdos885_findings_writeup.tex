@@ -1,0 +1,629 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage[margin=1in]{geometry}
+
+%% theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{computation}[theorem]{Computation}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{observation}[theorem]{Observation}
+
+%% notation
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\factorDiff}{\mathrm{D}}
+\newcommand{\fiberSet}{\mathrm{F}}
+\newcommand{\BSet}{\mathrm{B}}
+\newcommand{\abs}[1]{\lvert #1\rvert}
+
+\title{Erd\H{o}s Problem E885: Formal Findings Report}
+\author{Generated from the Lean formalization in\\
+\texttt{FormalConjectures/Problems/Erdos/E885/}}
+\date{April 2026}
+
+\begin{document}
+\maketitle
+
+% -------------------------------------------------------------------------
+\begin{abstract}
+We report on the current state of a Lean~4 / Mathlib formalization
+of Erd\H{o}s Problem~885, which asks whether, for every $k\ge 1$,
+there exist integers $N_1<\cdots<N_k$ whose factor-difference sets
+share at least $k$ common elements.
+The formalization covers:
+(i) exact algebraic reformulations (square-discriminant, anchored-packet,
+column/cocycle/transfer laws);
+(ii) verified explicit configurations for $k=2$, $k=3$, and a $3\times 4$
+configuration;
+(iii) structural results on pair-fiber finiteness and B-set intersections;
+(iv) the guidepost rigidity theorem showing the known $3\times 4$ seed
+admits exactly four common secants;
+(v) lift-surface computations certifying that no new integral fifth
+column arises from the divisor-parametrized search;
+(vi) addendum counterexamples to several conjectured cap bounds.
+All listed results compile without \texttt{sorry} in the repository.
+We distinguish carefully between exact formal theorems, verified
+computations, partial formalizations, and open directions.
+\end{abstract}
+
+% -------------------------------------------------------------------------
+\section{Introduction and Problem Status}\label{sec:intro}
+
+Erd\H{o}s and Rosenfeld~\cite{ErRo97} introduced the \emph{factor-difference
+set} of a positive integer and asked whether arbitrarily large common
+intersections can be achieved.  The question remains open:
+the current literature covers $k=2$ (Erd\H{o}s--Rosenfeld~\cite{ErRo97}),
+$k=3$ (Jim\'enez-Urroz~\cite{Ji99}), with further structural analysis
+by Bremner~\cite{Br19}.
+
+The Lean formalization in this repository provides:
+\begin{itemize}[nosep]
+\item a complete formal problem statement (\texttt{Main.lean});
+\item verified witnesses for $k=2$ and $k=3$;
+\item a verified $3\times 4$ configuration (three integers sharing four
+      common factor differences);
+\item a library of exact algebraic identities and structural lemmas
+      (\texttt{Findings/} directory);
+\item finite rigidity and lift-surface computations;
+\item addendum counterexamples to several cap conjectures.
+\end{itemize}
+The problem itself (\texttt{erdos\_885}) is stated with
+\texttt{answer(sorry)}, reflecting its open status.
+
+% -------------------------------------------------------------------------
+\section{Problem Statement and Notation}\label{sec:statement}
+
+\begin{definition}[Factor-difference set; \texttt{Defs.lean}]\label{def:factordiff}
+For $n\in\NN$, $n\ge 1$, the \emph{factor-difference set} of~$n$ is
+\[
+  \factorDiff(n) \;=\; \bigl\{\,\abs{a-b} : a,b\in\NN,\; a,b>0,\;
+  a\cdot b = n\bigr\}.
+\]
+\end{definition}
+
+\begin{definition}[Fiber set; \texttt{Defs.lean}]\label{def:fiber}
+For a set $S\subseteq\NN$, the \emph{fiber set} is
+$\fiberSet(S)=\{n\ge 1 : S\subseteq\factorDiff(n)\}$.
+\end{definition}
+
+\begin{theorem}[Erd\H{o}s Problem 885; \texttt{Main.lean}]\label{thm:e885}
+Is it true that for every $k\ge 1$ there exists a finite set
+$\{N_1,\dots,N_k\}\subset\NN$ with $N_i\ge 1$ for all~$i$ and
+\[
+  \Bigl\lvert\bigcap_{i=1}^{k}\factorDiff(N_i)\Bigr\rvert\;\ge\; k\;?
+\]
+The formalization leaves the Boolean answer as \texttt{sorry} (open problem).
+\end{theorem}
+
+% -------------------------------------------------------------------------
+\section{Literature Baseline: Verified Witnesses}\label{sec:witnesses}
+
+\subsection{The case $k=2$}
+
+\begin{theorem}[\texttt{variants.k\_eq\_2}; \texttt{Main.lean}]
+$\factorDiff(12)\cap\factorDiff(42)\supseteq\{1,11\}$, witnessed by
+$12 = 3\times 4$ (difference~$1$), $12 = 1\times 12$ (difference~$11$),
+$42 = 6\times 7$ (difference~$1$), $42 = 3\times 14$ (difference~$11$).
+Hence $\lvert\factorDiff(12)\cap\factorDiff(42)\rvert\ge 2$.
+\end{theorem}
+
+\subsection{The case $k=3$}
+
+\begin{theorem}[\texttt{variants.k\_eq\_3}; \texttt{Main.lean}]
+$\factorDiff(112)\cap\factorDiff(952)\cap\factorDiff(3240)\supseteq\{6,54,111\}$.
+\end{theorem}
+
+The individual memberships are verified by explicit factorizations in
+\texttt{Computations.lean}, e.g.\ $112 = 8\times 14$ gives
+$14-8=6\in\factorDiff(112)$.
+
+\subsection{The $3\times 4$ configuration}
+
+\begin{theorem}[\texttt{variants.three\_by\_four\_configuration}; \texttt{Main.lean}]\label{thm:3x4}
+The triple $(13608,\,29848,\,65968)$ shares at least four common factor
+differences $\{18,282,477,1122\}$.  Thus $k=3$ integers can achieve
+$\lvert\bigcap\factorDiff(N_i)\rvert\ge 4$.
+This is the strongest explicit witness in the repository; the literature
+$k=4$ theorem is cited but not yet formalized.
+\end{theorem}
+
+% -------------------------------------------------------------------------
+\section{Square-Discriminant Reformulation}\label{sec:sq-disc}
+
+\begin{proposition}[Proposition~1.2; \texttt{SquareDiscriminant.lean}]\label{prop:sq-disc}
+For $d,n\ge 1$,
+\[
+  d\in\factorDiff(n) \;\iff\;
+  \exists\, m\in\NN,\; m>d,\; m^2 = d^2 + 4n.
+\]
+Equivalently, $d^2+4n$ is a perfect square.
+\end{proposition}
+
+Both directions are formalized separately as
+\texttt{factorDiff\_implies\_square} (forward) and
+\texttt{square\_implies\_factorDiff} (backward), in addition to the
+biconditional \texttt{square\_discriminant\_iff}.
+
+% -------------------------------------------------------------------------
+\section{Pair-Fiber Structure and Finiteness}\label{sec:pairfiber}
+
+\begin{theorem}[Finiteness of two-element fibers; \texttt{PairFiber.lean}]\label{thm:pairfiber-fin}
+For distinct $d,e>0$, the fiber set $\fiberSet(\{d,e\})$ is finite.
+\end{theorem}
+
+This is a weakened consequence of the full pair-fiber parametrization
+from the notes.  The proof uses the square-discriminant witnesses
+$(x,y)$ with $x^2=d^2+4n$ and $y^2=e^2+4n$; then $y^2-x^2=e^2-d^2$
+is fixed, so the factorizations of $e^2-d^2$ bound both $x$ and $y$,
+hence~$n$.
+
+\begin{theorem}[Pair-fiber parametrization; \texttt{PairFiberParametrization.lean}]
+If $d<e$ are both factor differences of~$n$, the square-discriminant
+witnesses satisfy $(y-x)(y+x)=e^2-d^2$, and there is a uniform bound
+$n\le (e^2-d^2)^2$.
+\end{theorem}
+
+\begin{remark}
+The full same-parity counting formula from the notes is \emph{not}
+formalized; only finiteness and the parametrization identity are
+established.
+\end{remark}
+
+% -------------------------------------------------------------------------
+\section{Anchored Packets, Column Law, and Transfer Laws}\label{sec:packet}
+
+\subsection{Anchored packet identity}
+
+\begin{proposition}[Proposition~4.1; \texttt{ColumnLaw.lean}]
+$c = r(2x+r)$ if and only if $(x+r)^2 = x^2+c$.
+\end{proposition}
+
+This is the algebraic core of the anchored-packet formulation:
+a set of factor differences $\{d_1,\dots,d_r\}$ has a common support~$N$
+if and only if there exists $x>0$ with $(x+r_i)^2 = x^2+c_i$ for each row,
+where $c_i = d_i^2-d_1^2$.
+
+\subsection{Column law and cocycle law}
+
+\begin{theorem}[Column law; \texttt{ColumnLaw.lean}]\label{thm:col-law}
+For a fixed column anchor~$x$ and rows $c_i = r_i(2x+r_i)$,
+$c_j(2x+r_j)$,
+\[
+  c_j\, r_i \;-\; c_i\, r_j \;=\; r_i\, r_j\,(r_j - r_i).
+\]
+\end{theorem}
+
+\begin{theorem}[Cocycle law; \texttt{ColumnLaw.lean}]
+For three rows $i<j<k$,
+\[
+  \Delta_{jk}\,\delta_{ij} - \Delta_{ij}\,\delta_{jk}
+  = \delta_{ij}\,\delta_{jk}\,\delta_{ik},
+\]
+where $\delta_{ij}=r_j-r_i$ and $\Delta_{ij}=c_j-c_i$.
+\end{theorem}
+
+\subsection{Three-row transfer law}
+
+\begin{theorem}[Theorem~4.8; \texttt{ColumnLaw.lean}]\label{thm:3row-transfer}
+Setting $u=r_3-r_2$, $v=r_4-r_3$, $B=c_3-c_2$, $A=c_4-c_3$,
+\[
+  A\,u - B\,v = u\,v\,(u+v).
+\]
+\end{theorem}
+
+\subsection{Four-row transfer laws}
+
+\begin{theorem}[\texttt{FourRowTransfer.lean}]
+The three-row cubic transfer law holds on both consecutive triples of a
+four-row anchored packet.  In addition, the quartic discriminant formulas
+\[
+  (2uv+v^2-A)^2 = v^4 - 2(A+2B)v^2 + A^2
+\]
+and
+\[
+  (2wv+v^2+A)^2 = v^4 + 2(A+2C)v^2 + A^2
+\]
+are established, together with the Riemann--Hurwitz arithmetic
+$2\cdot 5 - 2 = 4(-2)+16$.
+\end{theorem}
+
+\subsection{Common-parameter equivalence}
+
+\begin{theorem}[\texttt{ObstructionDescent.lean}]\label{thm:common-param}
+Over~$\QQ$, the three-row transfer system
+$Au - Bv = uv(u+v)$ and $Cv - Aw = vw(v+w)$ is equivalent to the
+existence of a single affine parameter~$\lambda$ such that
+$B = u(u+\lambda)$, $B+A = (u+v)(u+v+\lambda)$,
+$B+A+C = (u+v+w)(u+v+w+\lambda)$.
+\end{theorem}
+
+\subsection{Verified $3\times 4$ packet}
+
+The packet with row offsets $(c_2,c_3,c_4)=(79200,227205,1258560)$
+and column anchors $x\in\{18,234,346,514\}$ is fully verified:
+all twelve identities $c_i = r_{i,t}(2x_t + r_{i,t})$ are checked
+in \texttt{ColumnLaw.lean}.
+
+\subsection{Cross-ratio test}
+
+\begin{theorem}[Theorem~4.5; \texttt{ColumnLaw.lean}]
+The cross-ratios of the three rows of the $3\times 4$ packet are
+pairwise distinct:
+$9840/6144 \ne 23760/14688 \ne 52992/32256$,
+hence the packet is not of M\"obius type.
+\end{theorem}
+
+% -------------------------------------------------------------------------
+\section{B-Set and Spectrum Viewpoint}\label{sec:bset}
+
+\begin{definition}[B-set; \texttt{BSet.lean}]
+$\BSet(\delta) = \{2z : z>0,\; \exists\, r,\; r^2 = z^2+\delta\}$.
+\end{definition}
+
+\begin{theorem}[B-set membership; \texttt{BSet.lean}]
+$2z\in\BSet(\delta)$ iff $z^2+\delta$ is a perfect square, iff
+$\delta = x(x+2z)$ for some $x>0$.
+\end{theorem}
+
+\begin{theorem}[Pairwise B-set finiteness; \texttt{BSet.lean}]
+For $0<a<b$, $\BSet(a)\cap\BSet(b)$ is finite.
+\end{theorem}
+
+The proof reduces to the factorizations of $b-a$, analogous to the
+pair-fiber argument.  The full iff-parametrization by divisors of $b-a$ is
+not encoded.
+
+\subsection{Spectral identities}
+
+The file \texttt{Spectrum.lean} records the column-spectrum
+factorization $r^2-d^2 = (r-d)(r+d)$ and verifies:
+\begin{itemize}[nosep]
+\item the three $\delta_t$ values $(54432, 119392, 263872)$ used in
+      the spectral-cap example;
+\item four elements of $\BSet(54432)$:
+      $18^2+54432=234^2$, $282^2+54432=366^2$,
+      $477^2+54432=531^2$, $1122^2+54432=1146^2$;
+\item the $7$-interface near-miss at $(48960,196560)$;
+\item quartic genus formula $\deg/2-1 = 1$ and degree-$8$
+      hyperelliptic genus~$3$.
+\end{itemize}
+It does \emph{not} formalize the full anchored-spectrum theorem or
+spectral-cap obstruction.
+
+% -------------------------------------------------------------------------
+\section{Row-Complex and Terminal-Spectrum Viewpoints}\label{sec:rowcomplex}
+
+\subsection{Row-complex identities (\texttt{RowComplex.lean})}
+
+\begin{theorem}[Row-complex identity]
+If $r_1^2-d_1^2=4N$ and $r_2^2-d_2^2=4N$, then
+$r_2^2-r_1^2 = d_2^2-d_1^2$.
+\end{theorem}
+
+Additional verified chain computations cover Examples~6.3--6.6 from the
+notes, including explicit supporting factorizations for the pairs
+$\{1,11\}$, $\{6,54,111\}$, $\{2,37,58\}$, and the four-difference
+packet.
+
+\begin{theorem}[Terminal stitch identity; \texttt{RowComplex.lean}]
+If $uv=\Lambda$ and $v-u=s$, then $s^2+4\Lambda = (u+v)^2$.
+\end{theorem}
+
+\subsection{Terminal spectrum (\texttt{TerminalSpectrum.lean})}
+
+\begin{definition}
+The \emph{terminal spectrum} of a column $C$ is
+$\{\Lambda\in\ZZ : \forall a,\; C(a)^2+4\Lambda \text{ is a perfect square}\}$.
+\end{definition}
+
+The file establishes:
+\begin{itemize}[nosep]
+\item Prefix monotonicity: deleting the last row can only enlarge the
+      terminal spectrum.
+\item Positive spectral characterization: $\Lambda>0$ lies in the
+      spectrum of a positive column iff $\Lambda=x(x+c)$ for some $x>0$.
+\item Backward reconstruction: for $-\Delta$ in the spectrum,
+      $U(a)=\sqrt{C(a)^2-4\Delta}$ is the unique nonneg coherent column,
+      it preserves square-step profiles, and it translates the spectrum by
+      exactly~$\Delta$.
+\item An $8$-row, $3$-column chain example with shifts
+      $\Delta\in\{786240,\,982080\}$ verified entry-by-entry.
+\end{itemize}
+
+% -------------------------------------------------------------------------
+\section{Square-Translate Geometry}\label{sec:sq-translate}
+
+\begin{theorem}[Pairwise factorization; \texttt{SquareTranslate.lean}]
+Over~$\QQ$, $(H/u_i-u_i)^2-(H/u_j-u_j)^2 = (u_j^2-u_i^2)(H^2/(u_i^2u_j^2)-1)$.
+\end{theorem}
+
+\begin{theorem}[Three-shift Weierstrass model; \texttt{SquareTranslate.lean}]
+Fix shifts $(0,p,q)$.  The common-square curve
+$v^2=u^2+p$, $w^2=u^2+q$ is birationally equivalent to the elliptic curve
+$E_{p,q}: Y^2 = X(X+4p)(X+4q)$
+via $X=4(u+v)(u+w)$, $Y=8(u+v)(u+w)(v+w)$.
+The inverse map is verified as $16pq-X^2 = -4Yu$.
+\end{theorem}
+
+\begin{theorem}[Genus formulas; \texttt{SquareTranslate.lean}]
+The static-support genus evaluates to $0$ ($r=2$), $1$ ($r=3$), $5$ ($r=4$),
+confirming that three shifts give an elliptic curve and four shifts give
+genus~$5$.
+\end{theorem}
+
+\begin{example}[Normalized seeds; \texttt{SquareTranslate.lean}]
+The triple $(112,952,3240)$ normalizes to shifts $e=(0,2880,12285)$
+with $u$-values $(6,22,62)$; the quadruple normalizes to
+$e=(0,79200,227205,1258560)$ with $u=(18,234,346,514)$.
+Both sets of square identities are formally verified.
+\end{example}
+
+\subsection{Non-split seed analysis}
+
+The seed $(79200,227205,1258560)$ is studied further:
+\begin{itemize}[nosep]
+\item Product factorization $(r-p)(r-q)=1179360\times 1031355$.
+\item Four rational points on the seed curve at $u\in\{18,234,346,514\}$.
+\item Three points are collinear on $Y=1582X+17319744$.
+\item All four lie on the elliptic curve
+      $Y^2=X(X+316800)(X+908820)$.
+\item The cross-ratio $\lambda=227205/79200=459/160$ is not a perfect
+      square in~$\QQ$ (formalized with a denominator argument).
+\item Deformation base verification:
+      $\Delta^2=(m-1532)(m-524)(m+596)(m+1460)$ at $m=1582$.
+\end{itemize}
+
+% -------------------------------------------------------------------------
+\section{Shift-Transpose}\label{sec:shift-transpose}
+
+\begin{theorem}[\texttt{ShiftTranspose.lean}]
+The transpose identity: if $x_0^2=y_0^2+a$ and $z^2=y^2+a$, then
+$x_0^2+(y^2-y_0^2)=z^2$.  This immediately yields a square witness
+for the translated shift and underlies the passage from a
+$5$-point/$3$-shift configuration to a $4$-point/$4$-shift one.
+\end{theorem}
+
+% -------------------------------------------------------------------------
+\section{Divisor Templates and Projective Obstructions}\label{sec:divisor}
+
+\begin{theorem}[Factor-pair encoding; \texttt{DivisorTemplate.lean}]
+If $a=r(r+n)$, $b=s(s+n)$, $c=t(t+n)$, and $M=2s+n$, then
+$b-a = x(M-x)$, $c-b = y(M+y)$, and $M^2-4b=n^2$,
+where $x=s-r$, $y=t-s$.
+\end{theorem}
+
+\begin{theorem}[Divisor-template identity; \texttt{DivisorTemplate.lean}]
+$y^2-A = a+u^2$ and $y^2+B = c+u^2$ where $y^2=b+u^2$, $A=b-a$, $B=c-b$.
+\end{theorem}
+
+\begin{theorem}[M\"obius obstruction; \texttt{DivisorTemplate.lean}]
+Both the diagonal and antidiagonal projective-rank-$2$ obstructions
+force $\kappa=\kappa'$: a nontrivial functional identity
+$\kappa z - \lambda^2 z^3 = \kappa'\lambda z - \lambda z^3$ for all
+$z\ne 0$ implies $\kappa=\kappa'$.
+\end{theorem}
+
+% -------------------------------------------------------------------------
+\section{Obstruction Descent}\label{sec:descent}
+
+\begin{theorem}[Factor-difference transfer; \texttt{ObstructionDescent.lean}]
+If $x^2=d^2+4n$ and $t^2=d^2+4M$, then $t\in\factorDiff(n)$ iff
+$x\in\factorDiff(M)$.  The full incidence matrix of common
+factor-difference memberships is transported exactly to the lower-level
+matrix.
+\end{theorem}
+
+\begin{theorem}[Anchored three-shift reduction; \texttt{ObstructionDescent.lean}]
+The three-shift system $z_1^2=u^2+p$, $z_2^2=u^2+q$, $z_3^2=u^2+r$
+with all entries positive is equivalent to the rigid three-square
+system $M^2-4p=v_1^2$, $M^2-4q=v_2^2$, $M^2-4r=v_3^2$
+where $M$ and the $v_i$ have prescribed parities.
+\end{theorem}
+
+% -------------------------------------------------------------------------
+\section{Guidepost Rigidity}\label{sec:guidepost}
+
+\begin{theorem}[\texttt{GuidepostRigidity.lean}]\label{thm:guidepost}
+The seed triple $(79200,\,227205,\,1258560)$ has exactly four
+positive common secants: $\{36,\,468,\,692,\,1028\}$.  In particular,
+the known $3\times 4$ seed is \emph{rigid}: no fifth common secant exists
+for this row triple.
+\end{theorem}
+
+The proof proceeds by:
+\begin{enumerate}[nosep]
+\item Computing the sum image
+      $\Sigma(148005)$ (24~elements, via \texttt{native\_decide}).
+\item Computing the difference image
+      $\Delta(1031355)$ (24~elements).
+\item Intersecting to obtain the four middle values
+      $\{954,\,1062,\,1178,\,1402\}$.
+\item Applying the square test $d^2 = m^2 - 4b$ to recover the four
+      secants $\{36,468,692,1028\}$.
+\item Proving the iff characterization:
+      $d\in\factorDiff(A)\cap\factorDiff(B)\cap\factorDiff(C)$
+      with $d>0$ iff $d\in\{36,468,692,1028\}$.
+\end{enumerate}
+
+% -------------------------------------------------------------------------
+\section{Lift-Surface Computations}\label{sec:lift}
+
+\begin{definition}[\texttt{LiftSurface.lean}]
+The \emph{moving lift parameter} $m(u,v)$ for the packet
+$(p,q,r)=(79200,227205,1258560)$ is the rational function
+\[
+  m(u,v) = \frac{(u^2-324)v^2-240552\,uv-324\,u^2+14569656624}
+                {18(uv-120276)}.
+\]
+The base quartic is
+$(m-1532)(m-524)(m+596)(m+1460)$.
+\end{definition}
+
+\begin{theorem}[Centered factorizations; \texttt{LiftSurface.lean}]
+Each linear factor of the quartic, multiplied by $18(uv-120276)$,
+factors as a product of two bilinear forms in $(u,v)$.  The product of
+all four factorizations yields
+\[
+  \Delta(m(u,v))\cdot 18^4(uv-120276)^4 = \Phi(u,v),
+\]
+where $\Phi$ is an explicit degree-$8$ polynomial.
+\end{theorem}
+
+\begin{computation}[Rational lift point; \texttt{LiftSurface.lean}]
+$(u,v)=(3406,18)$ gives $m=6548/39$ (non-integral),
+$\Delta(m)=(1182146560/1521)^2$.
+\end{computation}
+
+\begin{theorem}[Finite search; \texttt{LiftSurface.lean}]
+The divisor parametrization of $r=1258560$ yields $60$ positive
+absolute lift abscissas.  The square test on admissible signed pairs
+produces exactly six solutions:
+\[
+  \{(-3406,-18),\;(-514,234),\;(-234,514),\;(234,-514),\;(514,-234),\;(3406,18)\}.
+\]
+Every surviving pair either has non-integral~$m$ or reuses a built-in
+fifth value $\abs{v}\in\{18,234,514\}$.  Hence no genuine integral fifth
+column arises from this search.
+\end{theorem}
+
+% -------------------------------------------------------------------------
+\section{Addendum Computations and Counterexamples}\label{sec:addendum}
+
+The file \texttt{AddendumComputations.lean} records several further
+explicit configurations that were discovered after the initial
+formalization and serve as counterexamples to various conjectured cap
+bounds.
+
+\begin{computation}[$3$-row / $5$-column packet]
+An explicit $3\times 5$ packet exists, refuting the universal bound
+$\lvert Y(a,b,c)\rvert\le 4$.  The $15$ square identities
+(e.g.\ $330^2+756000=930^2$) are verified by \texttt{native\_decide}.
+\end{computation}
+
+\begin{computation}[Two-shift cap counterexample]
+A two-shift configuration with six solutions (twelve square identities)
+is verified, refuting certain two-shift cap conjectures.
+\end{computation}
+
+\begin{computation}[$3$-point obstruction counterexample]
+The set $\{18,66,186\}$ has at least four positive shifts,
+refuting the $3$-point obstruction route.
+\end{computation}
+
+\begin{computation}[Primitive $4$-secant triples]
+Two primitive maximal $4$-secant triples are verified:
+\begin{enumerate}[nosep]
+\item Supports $(46592,\,363545,\,1498112)$ with secants
+      $(16,344,776,1424)$.
+\item Supports $(24640,\,405405,\,1723680)$ with secants
+      $(108,516,1212,1524)$.
+\end{enumerate}
+\end{computation}
+
+% -------------------------------------------------------------------------
+\section{Summary of Formalization Status}\label{sec:status}
+
+\subsection{Exact formal theorems (no \texttt{sorry})}
+
+\begin{enumerate}[nosep]
+\item Square-discriminant reformulation (Proposition~\ref{prop:sq-disc}).
+\item Pair-fiber finiteness and parametrization (Section~\ref{sec:pairfiber}).
+\item B-set membership characterization and pairwise finiteness.
+\item Column law, cocycle law, three- and four-row transfer laws.
+\item Common-parameter equivalence (Theorem~\ref{thm:common-param}).
+\item Factor-difference transfer and matrix transport.
+\item Anchored three-shift reduction.
+\item Divisor-template and M\"obius obstruction identities.
+\item Shift-transpose identity and forward witness.
+\item Three-shift Weierstrass model and inverse map.
+\item Genus formulas for $r=2,3,4$.
+\item Cross-ratio non-M\"obius test.
+\item Terminal-spectrum structural theory (backward reconstruction,
+      spectrum translation, prefix monotonicity, constant-shift
+      propagation).
+\item Guidepost rigidity: exact $4$-element common secant set
+      (Theorem~\ref{thm:guidepost}).
+\item Lift-surface: centered factorizations, quartic identity, finite
+      search yielding six degenerate solutions.
+\item All verified witnesses ($k=2$, $k=3$, $3\times 4$).
+\end{enumerate}
+
+\subsection{Verified explicit computations}
+
+All arithmetic checks listed in Section~\ref{sec:witnesses},
+\ref{sec:guidepost}, \ref{sec:lift}, and~\ref{sec:addendum} compile
+without \texttt{sorry}.  Many use \texttt{native\_decide} or
+\texttt{norm\_num}.
+
+\subsection{Partial formalizations}
+
+\begin{enumerate}[nosep]
+\item \textbf{Pair-fiber counting formula}: only finiteness is proved;
+      the exact same-parity divisor count is not formalized.
+\item \textbf{B-set intersection parametrization}: only finiteness;
+      the full iff-by-divisors is not encoded.
+\item \textbf{Anchored spectrum}: only the algebraic identity and
+      selected numerical checks; the full theorem, boundary embedding,
+      and spectral-cap obstruction are not formalized.
+\item \textbf{Row-complex}: chain computations and the key identity are
+      present, but the full $H(T)/S(T)$ recursion and row-complex
+      bijection are not.
+\item \textbf{Square-translate geometry}: birational maps and genus
+      formulas are present, but the full algebraic-geometry statements
+      (e.g.\ Mordell--Weil rank, rational-point structure) are not.
+\end{enumerate}
+
+\subsection{Open directions}
+
+\begin{enumerate}[nosep]
+\item The problem itself remains open (\texttt{erdos\_885} has
+      \texttt{answer(sorry)}).
+\item The literature $k=4$ result is not yet formalized.
+\item No $k\ge 5$ witness is known.
+\item The spectral-cap and global-cap obstructions are not formalized,
+      and the addendum counterexamples show some conjectured cap bounds
+      are false.
+\item The Mordell--Weil analysis of the three-shift elliptic curve and
+      the genus-$5$ four-shift curve are not formalized.
+\item The lift-surface analysis is complete for the specific seed
+      $(79200,227205,1258560)$ but has not been generalized.
+\end{enumerate}
+
+% -------------------------------------------------------------------------
+\section*{References}
+
+\begin{thebibliography}{9}
+\bibitem{ErRo97}
+P.~Erd\H{o}s and M.~Rosenfeld,
+\emph{The factor-difference set of integers},
+Acta Arith.\ \textbf{79} (1997), 353--359.
+
+\bibitem{Ji99}
+J.~Jim\'enez-Urroz,
+\emph{A note on a conjecture of Erd\H{o}s and Rosenfeld},
+J.~Number Theory \textbf{77} (1999), 64--69.
+
+\bibitem{Br19}
+A.~Bremner,
+\emph{On a problem of Erd\H{o}s related to common factor differences},
+Integers \textbf{19} (2019), \#A32.
+
+\bibitem{erdosproblems}
+\url{https://www.erdosproblems.com/885}
+\end{thebibliography}
+
+\end{document}

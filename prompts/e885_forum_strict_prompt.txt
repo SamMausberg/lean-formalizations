@@ -1,0 +1,41 @@
+You are working inside a Lean project containing formal findings for Erdos Problem E885.
+
+Task:
+Generate a fresh LaTeX forum-note style writeup that includes only material that is 100% formalized in the current Lean files.
+
+Output:
+- Produce a self-contained LaTeX file named `erdos885_forum_note.tex`.
+- Optionally produce a short companion `erdos885_forum_note_README.md`.
+
+Critical scope restriction:
+Only include the following fully formalized findings, and nothing else as substantive mathematical content:
+
+1. The anchored 3-shift cap counterexample, formalized as the explicit packet in `AddendumComputations.lean` (`new_3row_5col_packet`).
+2. Guidepost rigidity, as formalized in `GuidepostRigidity.lean`, including the exact middle-value sieve, the exact common secant set `{36, 468, 692, 1028}`, and the rigidity statement.
+
+Hard requirements:
+- Do not include any result unless it is directly supported by a current Lean theorem in the repo.
+- Do not include open directions, speculative claims, or broader survey material beyond a very short introductory paragraph.
+- Do not reuse or lightly edit the existing broad writeup files. Write a new focused document.
+- Treat the Lean files as the source of truth for statements and strength.
+- Make the anchored cap failure explicit, and add one sentence explaining why it does not solve the original `k = 5` problem.
+
+Desired shape:
+- Title and a short abstract.
+- Very brief introduction explaining that this note isolates two fully formalized partial results from the larger E885 project.
+- One section for the anchored 3-shift cap counterexample.
+- One section for guidepost rigidity.
+- A short concluding paragraph summarizing exactly what has been proven in Lean.
+
+Style:
+- Professional mathematical prose suitable for a public forum post.
+- Concise and readable.
+- Use theorem / proposition / computation environments as appropriate.
+- File-aware attribution in prose is welcome, for example “formalized in `GuidepostRigidity.lean`”.
+- Avoid overclaiming. Use labels like “identity”, “computation”, or “rigidity theorem” exactly when justified by the Lean content.
+
+Project guidance:
+- Read `FormalConjectures/Problems/Erdos/E885/Findings/AddendumComputations.lean`.
+- Read `FormalConjectures/Problems/Erdos/E885/Findings/GuidepostRigidity.lean`.
+- Use other files only when needed for notation or dependencies.
+- Do not use `erdos885_notes.tex` as a template.

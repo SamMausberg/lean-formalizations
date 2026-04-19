@@ -1,0 +1,294 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{titlesec}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!black,
+  citecolor=blue!50!black,
+  urlcolor=blue!50!black,
+  pdftitle={Two Formalized Partial Results Related to Erd\H{o}s Problem E885},
+  pdfauthor={Sam Mausberg}
+}
+
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection.}{0.6em}{}
+
+\newtheoremstyle{plainbreak}
+  {\topsep}{\topsep}
+  {\itshape}{}
+  {\bfseries}{.}
+  { }{\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}\newline}
+\theoremstyle{plainbreak}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\newtheoremstyle{defbreak}
+  {\topsep}{\topsep}
+  {}{}
+  {\bfseries}{.}
+  { }{\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}\newline}
+\theoremstyle{defbreak}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{computation}[theorem]{Computation}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{Two Formalized Partial Results Related to Erd\H{o}s Problem E885}
+\author{Sam Mausberg\\[0.25em]\normalsize Formalized in Lean\,4 with Mathlib}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\small
+\emph{Acknowledgment / Disclosure.}
+The source research notes for this writeup were developed with the use of
+GPT-5.4 Pro.
+The supporting formalization workflow and an initial draft of this note
+were prepared with assistance from Aristotle AI
+(\url{https://aristotle.harmonic.fun}; GitHub
+\texttt{@Aristotle-Harmonic}).
+The mathematical claims reported here were then manually curated so that
+only statements directly supported by the Lean source remain.
+\end{center}
+
+\begin{abstract}
+We record two results related to Erd\H{o}s Problem~E885 that are fully
+machine-verified in Lean\,4 with Mathlib.
+First, the explicit triple
+\[
+  (756000,\;15971200,\;45130176)
+\]
+has at least five anchored square translates, so the natural universal
+anchored cap
+\[
+  |Y(a,b,c)| \le 4
+\]
+is false; this does not settle the original $k=5$ problem.
+Second, the guidepost seed
+\[
+  (79200,\;227205,\;1258560)
+\]
+is rigid: its common positive factor-difference set is exactly
+\[
+  \{36,\;468,\;692,\;1028\}.
+\]
+No claims beyond what is directly supported by the Lean source, together
+with immediate finite corollaries of the displayed computations, are made.
+\end{abstract}
+
+\section{Introduction}
+
+For a positive integer $n$, write
+\[
+  D(n) \;=\; \bigl\{\,|a-b| : a,b\in\mathbb{Z}_{>0},\ ab=n\bigr\}
+\]
+for its factor-difference set.
+Erd\H{o}s Problem~E885 asks whether, for every $k\ge 1$, there exist
+$k$ positive integers with at least $k$ common factor differences.
+
+This note isolates the two strongest standalone results in the present
+Lean formalization that are most relevant for a short forum post.
+Each referenced Lean theorem or computation below is backed by a
+machine-checked Lean\,4 proof, and the cap-failure corollary in
+Section~2 is the immediate finite consequence of the displayed five
+distinct witnesses.
+
+\section{Anchored 3-shift cap counterexample}
+
+\begin{definition}[Anchored square-translate set]
+For positive integers $a,b,c$, define
+\[
+  Y(a,b,c)
+  \;:=\;
+  \bigl\{\,z\in\mathbb{Z}_{>0} :
+    z^2+a,\ z^2+b,\ z^2+c \text{ are all perfect squares}\,\bigr\}.
+\]
+\end{definition}
+
+The first result is an explicit packet of five distinct points in one such
+set.
+
+\begin{computation}[Five anchored square translates]\label{comp:packet}
+For the shift triple
+\[
+  (a,b,c) \;=\; (756000,\;15971200,\;45130176),
+\]
+each of the five values
+\[
+  z \in \{330,\;870,\;2445,\;4155,\;10482\}
+\]
+lies in $Y(a,b,c)$.
+Concretely, the Lean theorem
+\texttt{new\_3row\_5col\_packet} proves the fifteen identities
+\[
+\renewcommand{\arraystretch}{1.15}
+\begin{array}{r|ccc}
+     & 756000 & 15971200 & 45130176 \\\hline
+330  & 930^2   & 4010^2   & 6726^2   \\
+870  & 1230^2  & 4090^2   & 6774^2   \\
+2445 & 2595^2  & 4685^2   & 7149^2   \\
+4155 & 4245^2  & 5765^2   & 7899^2   \\
+10482 & 10518^2 & 11218^2 & 12450^2
+\end{array}
+\]
+meaning that for each row value $z$ and each column shift $s$, one has
+$z^2+s$ equal to the displayed square.
+\end{computation}
+
+\begin{corollary}[Failure of the anchored 3-shift cap]
+For the triple $(756000,\;15971200,\;45130176)$ one has
+\[
+  \{330,\;870,\;2445,\;4155,\;10482\} \subseteq Y(756000,15971200,45130176),
+\]
+hence
+\[
+  |Y(756000,15971200,45130176)| \ge 5.
+\]
+In particular, the universal bound $|Y(a,b,c)|\le 4$ is false.
+\end{corollary}
+\noindent The formalized input is
+\texttt{new\_3row\_5col\_packet} in \texttt{AddendumComputations.lean};
+the cardinality conclusion is the immediate finite corollary from the five
+displayed distinct witnesses.
+
+\begin{remark}[Why this matters, and what it does not do]
+This gives an explicit counterexample to the natural anchored three-shift
+bound that had been a plausible intermediate target.
+It does \emph{not} solve Erd\H{o}s Problem~E885 itself:
+the original problem asks for $k$ row values with $k$ common
+factor differences, whereas the statement above concerns three fixed
+shifts with five anchored square translates.
+\end{remark}
+
+\section{Guidepost rigidity}
+
+All named results in this section are formalized in
+\texttt{GuidepostRigidity.lean}.
+
+\begin{definition}[Guidepost seed]
+The \emph{guidepost seed} is the triple
+\[
+  (n_1,n_2,n_3) \;=\; (79200,\;227205,\;1258560).
+\]
+Its row gaps are
+\[
+  \Delta_1 = n_2-n_1 = 148005,
+  \qquad
+  \Delta_2 = n_3-n_2 = 1031355.
+\]
+\end{definition}
+
+The rigidity proof proceeds through an exact finite sieve.
+
+\subsection{Factor-pair images}
+
+Define
+\[
+  \Sigma(N) \;=\; \{\,d + N/d : d\mid N,\ d < N/d\,\},
+  \qquad
+  \Delta(N) \;=\; \{\,N/d - d : d\mid N,\ d < N/d\,\}.
+\]
+
+\begin{computation}[Guidepost factor-pair images]\label{comp:images}
+\begin{align*}
+  \Sigma(148005) &= \{774, 794, 838, 922, 954, 1062, 1178, 1382, 1402, 1594,\\
+  &\qquad 2214, 2342, 2746, 3334, 3834, 4518, 6458, 9882, 11398,\\
+  &\qquad 13466, 16454, 29606, 49338, 148006\},\\[4pt]
+  \Delta(1031355) &= \{954, 1062, 1178, 1286, 1402, 2278, 2426, 4582, 4826,\\
+  &\qquad 5094, 7866, 8262, 8698, 15802, 22874, 23942, 25114,\\
+  &\qquad 26406, 68742, 79322, 114586, 206266, 343782, 1031354\}.
+\end{align*}
+\end{computation}
+\noindent Formalized as \texttt{guidepostSigma\_eq} and
+\texttt{guidepostDelta\_eq}.
+
+\subsection{Middle-value sieve}
+
+\begin{lemma}[Guidepost middle-value sieve]\label{lem:middle}
+If $d>0$ and
+\[
+  d \in D(79200)\cap D(227205)\cap D(1258560),
+\]
+then there exists
+\[
+  m \in \Sigma(148005)\cap \Delta(1031355)
+\]
+such that
+\[
+  m^2 = d^2 + 4\cdot 227205.
+\]
+\end{lemma}
+\noindent Formalized as
+\texttt{guidepost\_middle\_value\_of\_common\_secant}.
+
+\begin{computation}[Surviving middle values]\label{comp:middle}
+\[
+  \Sigma(148005)\cap\Delta(1031355)
+  \;=\;
+  \{954,\;1062,\;1178,\;1402\}.
+\]
+\end{computation}
+\noindent Formalized as \texttt{guidepostMiddleValues\_eq}.
+
+\subsection{Square test and rigidity}
+
+Each surviving middle value yields a candidate common factor difference via
+\[
+  d^2 = m^2 - 4\cdot 227205.
+\]
+The four resulting square tests are:
+\begin{align*}
+  954^2 - 4\cdot 227205 &= 36^2, \\
+  1062^2 - 4\cdot 227205 &= 468^2, \\
+  1178^2 - 4\cdot 227205 &= 692^2, \\
+  1402^2 - 4\cdot 227205 &= 1028^2.
+\end{align*}
+These are formalized as \texttt{guidepostSquareTest\_954} through
+\texttt{guidepostSquareTest\_1402}.
+
+\begin{theorem}[Guidepost rigidity]\label{thm:rigid}
+For every positive integer $d$,
+\[
+  d \in D(79200)\cap D(227205)\cap D(1258560)
+  \quad\Longleftrightarrow\quad
+  d \in \{36,\;468,\;692,\;1028\}.
+\]
+In particular, the guidepost seed has exactly four common positive factor
+differences.
+\end{theorem}
+\noindent Formalized as
+\texttt{guidepost\_positive\_common\_factorDiffSet\_iff} (the exact
+biconditional) and \texttt{guidepost\_seed\_rigid} (the set equality and
+cardinality statement).
+
+\section{Summary}
+
+This short forum note records two fully formalized outcomes.
+\begin{itemize}[nosep]
+  \item The anchored three-shift cap is false: the triple
+    $(756000,\;15971200,\;45130176)$ has at least five anchored square
+    translates.
+  \item The guidepost seed
+    $(79200,\;227205,\;1258560)$ is rigid: its common positive
+    factor-difference set is exactly
+    $\{36,\;468,\;692,\;1028\}$.
+\end{itemize}
+Additional exact identities and explicit $4$-point computations remain in
+the repository, but they are omitted here so that the note stays focused on
+the strongest forum-facing statements already supported by the Lean source.
+
+\end{document}

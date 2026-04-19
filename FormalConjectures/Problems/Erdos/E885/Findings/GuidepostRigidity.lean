@@ -40,10 +40,10 @@ def guidepostGapA : ℕ := guidepostRowB - guidepostRowA
 def guidepostGapB : ℕ := guidepostRowC - guidepostRowB
 
 theorem guidepostGapA_value : guidepostGapA = 148005 := by
-  native_decide
+  norm_num [guidepostGapA, guidepostRowA, guidepostRowB]
 
 theorem guidepostGapB_value : guidepostGapB = 1031355 := by
-  native_decide
+  norm_num [guidepostGapB, guidepostRowB, guidepostRowC]
 
 /-- The finite sum image `Σ(N) = {d + e : d e = N, d < e}`. -/
 def sigmaImage (N : ℕ) : Finset ℕ :=
@@ -73,14 +73,14 @@ def guidepostCommonSecants : Finset ℕ :=
   guidepostSquareSecants
 
 set_option linter.style.nativeDecide false in
-  theorem guidepostSigma_eq :
+theorem guidepostSigma_eq :
     guidepostSigma =
       {774, 794, 838, 922, 954, 1062, 1178, 1382, 1402, 1594, 2214, 2342, 2746,
         3334, 3834, 4518, 6458, 9882, 11398, 13466, 16454, 29606, 49338, 148006} := by
   native_decide
 
 set_option linter.style.nativeDecide false in
-  theorem guidepostDelta_eq :
+theorem guidepostDelta_eq :
     guidepostDelta =
       {954, 1062, 1178, 1286, 1402, 2278, 2426, 4582, 4826, 5094, 7866, 8262, 8698,
         15802, 22874, 23942, 25114, 26406, 68742, 79322, 114586, 206266, 343782,
@@ -176,14 +176,16 @@ theorem guidepost_middle_value_of_common_secant {d : ℕ}
     have hsr : s ≤ r := Nat.le_of_not_gt hrs'
     have hba : guidepostRowB ≤ guidepostRowA := by
       nlinarith [har, hbs, hsr]
-    have hab_rows : guidepostRowA < guidepostRowB := by native_decide
+    have hab_rows : guidepostRowA < guidepostRowB := by
+      norm_num [guidepostRowA, guidepostRowB]
     omega
   have hst : s < t := by
     by_contra hst'
     have hts : t ≤ s := Nat.le_of_not_gt hst'
     have hcb : guidepostRowC ≤ guidepostRowB := by
       nlinarith [hbs, hct, hts]
-    have hbc_rows : guidepostRowB < guidepostRowC := by native_decide
+    have hbc_rows : guidepostRowB < guidepostRowC := by
+      norm_num [guidepostRowB, guidepostRowC]
     omega
   let m := 2 * s + d
   have hAfac : guidepostGapA = (s - r) * (s + r + d) := by
@@ -191,7 +193,8 @@ theorem guidepost_middle_value_of_common_secant {d : ℕ}
     have hsum :
         guidepostGapA + guidepostRowA = (s - r) * (s + r + d) + guidepostRowA := by
       calc
-        guidepostGapA + guidepostRowA = guidepostRowB := by native_decide
+        guidepostGapA + guidepostRowA = guidepostRowB := by
+          norm_num [guidepostGapA, guidepostRowA, guidepostRowB]
         _ = s * (s + d) := hbs
         _ = (s - r) * (s + r + d) + r * (r + d) := by
               rw [hs]
@@ -204,7 +207,8 @@ theorem guidepost_middle_value_of_common_secant {d : ℕ}
     have hsum :
         guidepostGapB + guidepostRowB = (t - s) * (t + s + d) + guidepostRowB := by
       calc
-        guidepostGapB + guidepostRowB = guidepostRowC := by native_decide
+        guidepostGapB + guidepostRowB = guidepostRowC := by
+          norm_num [guidepostGapB, guidepostRowB, guidepostRowC]
         _ = t * (t + d) := hct
         _ = (t - s) * (t + s + d) + s * (s + d) := by
               rw [ht']
@@ -218,7 +222,7 @@ theorem guidepost_middle_value_of_common_secant {d : ℕ}
     refine ⟨s - r, ?_, ?_⟩
     · refine Finset.mem_filter.mpr ⟨?_, ?_⟩
       · exact Nat.mem_divisors.mpr ⟨by rw [hAfac]; exact dvd_mul_right (s - r) (s + r + d),
-          by native_decide⟩
+          by decide⟩
       · rw [hAfac, Nat.mul_div_right _ (Nat.sub_pos_of_lt hrs)]
         omega
     · rw [hAfac, Nat.mul_div_right _ (Nat.sub_pos_of_lt hrs)]
@@ -230,7 +234,7 @@ theorem guidepost_middle_value_of_common_secant {d : ℕ}
     refine ⟨t - s, ?_, ?_⟩
     · refine Finset.mem_filter.mpr ⟨?_, ?_⟩
       · exact Nat.mem_divisors.mpr ⟨by rw [hBfac]; exact dvd_mul_right (t - s) (t + s + d),
-          by native_decide⟩
+          by decide⟩
       · rw [hBfac, Nat.mul_div_right _ (Nat.sub_pos_of_lt hst)]
         omega
     · rw [hBfac, Nat.mul_div_right _ (Nat.sub_pos_of_lt hst)]
@@ -287,9 +291,9 @@ theorem guidepost_positive_common_factorDiffSet_iff {d : ℕ} :
     rcases hdAB with ⟨hdA, hdB⟩
     obtain ⟨m, hm, hmSq⟩ :=
       guidepost_middle_value_of_common_secant hdpos hdA hdB hdC
-    rw [guidepostMiddleValues_eq] at hm
-    simp at hm
-    rcases hm with rfl | rfl | rfl | rfl
+    have hm_cases : m = 954 ∨ m = 1062 ∨ m = 1178 ∨ m = 1402 := by
+      simpa [guidepostMiddleValues_eq] using hm
+    rcases hm_cases with rfl | rfl | rfl | rfl
     · left
       have h954 : 954 * 954 = 36 * 36 + 4 * guidepostRowB := by
         norm_num [guidepostRowB]
@@ -337,6 +341,7 @@ theorem guidepost_positive_common_factorDiffSet_iff {d : ℕ} :
     · exact ⟨⟨guidepost_1028_mem_factorDiffSet_A, guidepost_1028_mem_factorDiffSet_B⟩,
         guidepost_1028_mem_factorDiffSet_C⟩
 
+set_option linter.style.nativeDecide false in
 theorem guidepostCommonSecants_card : guidepostCommonSecants.card = 4 := by
   rw [guidepostCommonSecants_eq]
   native_decide

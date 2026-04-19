@@ -9,8 +9,6 @@ This file formalizes the core definitions from `erdos885_notes.tex`, Section 1
 
 open Finset
 
-set_option maxHeartbeats 800000
-
 /-- **Definition 1.1** (erdos885_notes.tex, §1).
 For a positive integer `n`, its *factor-difference set* is
   `D(n) := { |a - b| : n = a * b, a, b ∈ ℤ_{>0} }`.

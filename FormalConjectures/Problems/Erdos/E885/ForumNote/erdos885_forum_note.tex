@@ -28,7 +28,7 @@
   {\topsep}{\topsep}
   {\itshape}{}
   {\bfseries}{.}
-  { }{\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}\newline}
+  {\newline}{}
 \theoremstyle{plainbreak}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{proposition}[theorem]{Proposition}
@@ -39,7 +39,7 @@
   {\topsep}{\topsep}
   {}{}
   {\bfseries}{.}
-  { }{\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}\newline}
+  {\newline}{}
 \theoremstyle{defbreak}
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{computation}[theorem]{Computation}
@@ -92,13 +92,19 @@ with immediate finite corollaries of the displayed computations, are made.
 
 \section{Introduction}
 
-For a positive integer $n$, write
+Erd\H{o}s Problem~E885 asks whether the following holds.
+For an integer $n\ge 1$, define the factor-difference set of $n$ by
 \[
-  D(n) \;=\; \bigl\{\,|a-b| : a,b\in\mathbb{Z}_{>0},\ ab=n\bigr\}
+  D(n) = \{\lvert a-b\rvert : n=ab\}.
 \]
-for its factor-difference set.
-Erd\H{o}s Problem~E885 asks whether, for every $k\ge 1$, there exist
-$k$ positive integers with at least $k$ common factor differences.
+Is it true that, for every $k\ge 1$, there exist integers
+\[
+  N_1 < \cdots < N_k
+\]
+such that
+\[
+  \bigl| \bigcap_i D(N_i) \bigr| \ge k?
+\]
 Background on the problem statement and the previously settled cases
 $k=2,3,4$ may be found in
 \cite{EP885,ErRo97,Ji99,Br19}.
@@ -171,6 +177,19 @@ displayed distinct witnesses.
 \begin{remark}[Why this matters, and what it does not do]
 This gives an explicit counterexample to the natural anchored three-shift
 bound that had been a plausible intermediate target.
+Nearby sumset-in-squares results are adjacent rather than identical to
+this anchored positive-shift statement.
+Dujella and Elsholtz construct large three-element square-sumsets, and in
+their variant where $A$, $B$, and $A+B$ are all squares they reduce to a
+zero-shift formulation \cite{DuEl13}.
+Elsholtz and Wurzinger later emphasize that $|A|=3$ can support large
+$B$, while for $|A|\ge 4$ an absolute bound on $|B|$ is conjecturally
+implied by Bombieri--Lang \cite{ElWu24}.
+Choudhry gives explicit $(5,3)$ and $(4,4)$ square-sumset constructions;
+one displayed $(5,3)$ example uses
+$B=\{0,\;3588000,\;8527200\}$ \cite{Cho25}.
+The present statement records an explicit positive three-shift anchored
+square-translate computation.
 It does \emph{not} solve Erd\H{o}s Problem~E885 itself:
 the original problem asks for $k$ row values with $k$ common
 factor differences, whereas the statement above concerns three fixed
@@ -316,6 +335,25 @@ J. Number Theory \textbf{78} (1999), no.~1, 140--143.
 A. Bremner,
 \emph{On a problem of Erd\H{o}s related to common factor differences},
 Int. J. Number Theory \textbf{15} (2019), no.~5, 1059--1068.
+
+\bibitem{DuEl13}
+A. Dujella and C. Elsholtz,
+\emph{Sumsets being squares},
+Acta Math. Hungar. \textbf{141} (2013), no.~4, 353--357.
+\href{https://doi.org/10.1007/s10474-013-0334-8}{doi:10.1007/s10474-013-0334-8}
+
+\bibitem{ElWu24}
+C. Elsholtz and L. Wurzinger,
+\emph{Sumsets in the set of squares},
+Q. J. Math. \textbf{75} (2024), no.~4, 1243--1254.
+\href{https://doi.org/10.1093/qmath/haae044}{doi:10.1093/qmath/haae044}
+
+\bibitem{Cho25}
+A. Choudhry,
+\emph{Two sets of integers such that all elements of the sumset of the two
+sets are perfect squares},
+arXiv:2508.07806 [math.NT], 2025.
+\href{https://doi.org/10.48550/arXiv.2508.07806}{doi:10.48550/arXiv.2508.07806}
 
 \end{thebibliography}
 

@@ -13,4 +13,14 @@ import FormalConjectures.Problems.Erdos.E20.TransversalCounterexample
 import FormalConjectures.Problems.Erdos.E20.LeafStripping
 import FormalConjectures.Problems.Erdos.E20.KernelBounds
 import FormalConjectures.Problems.Erdos.E20.ExplicitKernels
+import FormalConjectures.Problems.Erdos.E20.TerminalLinks
+import FormalConjectures.Problems.Erdos.E20.ProjectionTransfer
+import FormalConjectures.Problems.Erdos.E20.TupleStates
+import FormalConjectures.Problems.Erdos.E20.RecurrenceReduction
+import FormalConjectures.Problems.Erdos.E20.ProfitablePrefix
+import FormalConjectures.Problems.Erdos.E20.FiniteStatePrefixes
+import FormalConjectures.Problems.Erdos.E20.AutomatonBranches
+import FormalConjectures.Problems.Erdos.E20.HereditaryGrowth
+import FormalConjectures.Problems.Erdos.E20.BranchBridgeCounterexample
+import FormalConjectures.Problems.Erdos.E20.CharacterTensors
 import FormalConjectures.Problems.Erdos.E20.InformalMap

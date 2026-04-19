@@ -3,6 +3,19 @@ import FormalConjectures.Problems.Erdos.E20.Counterexample
 import FormalConjectures.Problems.Erdos.E20.TransversalCounterexample
 import FormalConjectures.Problems.Erdos.E20.KernelBounds
 import FormalConjectures.Problems.Erdos.E20.ExplicitKernels
+import FormalConjectures.Problems.Erdos.E20.TerminalLinks
+import FormalConjectures.Problems.Erdos.E20.ProjectionTransfer
+import FormalConjectures.Problems.Erdos.E20.TupleStates
+import FormalConjectures.Problems.Erdos.E20.RecurrenceReduction
+import FormalConjectures.Problems.Erdos.E20.ProfitablePrefix
+import FormalConjectures.Problems.Erdos.E20.FiniteStatePrefixes
+import FormalConjectures.Problems.Erdos.E20.AutomatonBranches
+import FormalConjectures.Problems.Erdos.E20.HereditaryGrowth
+import FormalConjectures.Problems.Erdos.E20.BranchBridgeCounterexample
+import FormalConjectures.Problems.Erdos.E20.CharacterTensors
+
+set_option linter.unusedDecidableInType false
+set_option linter.unusedFintypeInType false
 
 namespace FormalConjectures.Problems.Erdos.E20
 
@@ -256,5 +269,309 @@ theorem pasted_small_matching_bounded_degree_kernel_bound
     (hM : IsMaximalMatchingIn J M) (hMk : M.card ≤ k - 1) :
     J.card ≤ (k - 1) * (s * (Δ - 1) + 1) :=
   card_le_vertexDegree_bound_of_small_maximalMatching huniform hΔ hM hMk
+
+/-- Informal declaration from the pasted terminal-kernel note:
+"the family of minimal surviving witnesses" `𝓜(𝓚)`. -/
+noncomputable abbrev pasted_minimal_surviving_witnesses
+    {α : Type*} [DecidableEq α] [Fintype α]
+    (Survives : Finset (Finset α) → Prop) (H : Finset (Finset α)) :
+    Finset (Finset α) :=
+  minimalSurvivingWitnesses Survives H
+
+/-- Informal declaration from the pasted terminal-kernel note:
+"the effective overlap degree" `Δ_eff(𝓚) = |𝓜(𝓚)|`. -/
+noncomputable abbrev pasted_effective_overlap_degree
+    {α : Type*} [DecidableEq α] [Fintype α]
+    (Survives : Finset (Finset α) → Prop) (H : Finset (Finset α)) : ℕ :=
+  effectiveOverlapDegree Survives H
+
+/-- Informal declaration from the pasted terminal-kernel note:
+once one has extracted a disjoint root/petal witness sunflower of bounded petal size, conditioning
+on the root produces a bounded-alphabet block trace skeleton. -/
+theorem pasted_bounded_alphabet_skeleton_from_witness_sunflower
+    {α : Type*} [DecidableEq α] [Fintype α]
+    (Survives : Finset (Finset α) → Prop)
+    {H : Finset (Finset α)} {m s : ℕ}
+    {D : WitnessSunflowerData Survives H m}
+    (hsize : ∀ i, (D.petals i).card ≤ s) :
+    ∃ A : Fin m → Finset (Finset α),
+      (∀ i, (A i).card ≤ 2 ^ s) ∧
+      ∀ w ∈ D.blockTrace, ∀ i, w i ∈ A i :=
+  WitnessSunflowerData.exists_boundedAlphabetSkeleton hsize
+
+/-- Informal declaration from the pasted projected-prefix note:
+if a projected code has at most `B` visible patterns, then some projected pattern carries at least
+an average-sized fiber.  This is the exact uniform counting version of the profitable-prefix
+statement. -/
+theorem pasted_projected_fiber_large
+    {G : Type*} [DecidableEq G]
+    {m s : ℕ} (C : Finset (Fin m → G)) (ι : Fin s → Fin m)
+    (hC : C.Nonempty) {B : ℕ} (hB : (projectedCode C ι).card ≤ B) :
+    ∃ u ∈ projectedCode C ι, C.card ≤ B * (projectedFiber C ι u).card :=
+  exists_large_projectedFiber_of_card_bound C ι hC hB
+
+/-- Informal declaration from the pasted projected-prefix / ambient-prefix transfer note:
+after choosing one projected pattern, some refinement cell is large up to the exact refinement
+count.  Formally this is expressed for arbitrary finite maps `p` and `q`. -/
+theorem pasted_projection_refinement_transfer
+    {α β γ : Type*} [DecidableEq α] [DecidableEq β] [DecidableEq γ]
+    (S : Finset α) (p : α → β) (q : α → γ) (hS : S.Nonempty) {B : ℕ}
+    (hB : (S.image p).card ≤ B) :
+    ∃ b ∈ S.image p, ∃ c ∈ (fiberOver S p b).image q,
+      S.card ≤ B * (((fiberOver S p b).image q).card * (fiberOver (fiberOver S p b) q c).card) :=
+  exists_large_projected_then_refinedFiber S p q hS hB
+
+/-- Informal declaration from the pasted support-piece recursion note:
+for every fixed support piece `P`, a cross-sunflower exists in the parent tuple-state iff some
+sunflower trace tuple on `P` has a child state containing a cross-sunflower. -/
+theorem pasted_exact_trace_branch_decomposition
+    {α : Type*} [DecidableEq α] {k : ℕ} (G : TupleState α k) (P : Finset α) :
+    HasCrossSunflowerTuple G ↔
+      ∃ T : Fin k → Finset α,
+        IsSunflowerTuple T ∧ HasCrossSunflowerTuple (childState G P T) :=
+  hasCrossSunflowerTuple_iff_exists_child P
+
+/-- Informal declaration from the pasted profitable-prefix reduction note:
+once a maximal-size function satisfies the exact profitable-drop recurrence, any constant
+`C > A * Λ` yields the exponential bound `M(r) ≤ C^r`. -/
+theorem pasted_profitable_drop_implies_exponential_bound
+    (M : ℕ → ℝ) (A Λ C : ℝ) (T : ℕ)
+    (hA : 1 ≤ A) (hΛ : 1 ≤ Λ) (hC : A * Λ < C)
+    (hnonneg : ∀ r, 0 ≤ M r)
+    (hbase : ∀ r, r ≤ T → M r ≤ C ^ r)
+    (hrec : HasProfitableDropRecurrence M A Λ T) :
+    ∀ r, M r ≤ C ^ r :=
+  exponential_bound_of_hasProfitableDropRecurrence M A Λ C T hA hΛ hC hnonneg hbase hrec
+
+/-- Informal declaration from the pasted parity-slice obstruction note:
+if the target profitability base `Λ` is below the alphabet size, then every positive-length prefix
+of the parity slice is too light to be `Λ`-profitable. -/
+theorem pasted_parity_prefix_not_profitable
+    {G : Type*} [DecidableEq G] [Fintype G] [AddCommGroup G]
+    {s n Λ : ℕ} (hs : 0 < s) (hΛpos : 0 < Λ) (hΛ : Λ < Fintype.card G)
+    (a : Fin s → G) :
+    ¬ 1 / (Λ : ℚ) ^ s ≤
+        ((prefixFiber (G := G) s n 0 a).card : ℚ) /
+          (paritySlice (G := G) (r := s + (n + 1))).card :=
+  paritySlice_prefix_not_profitable_of_nat_lt_card (G := G) hs hΛpos hΛ a
+
+/-- Informal declaration from the pasted finite-state note:
+the transfer-root candidate is the infimum over all superharmonic constants. -/
+noncomputable abbrev pasted_transfer_root
+    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
+    (A : EdgeShift (Q := Q) (E := E)) : ℝ :=
+  A.transferRoot
+
+/-- Informal declaration from the pasted finite-state note:
+the transfer matrix counts edges from each state to each next state. -/
+noncomputable abbrev pasted_transfer_matrix
+    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
+    (A : EdgeShift (Q := Q) (E := E)) : Matrix Q Q ℝ :=
+  A.transferMatrix
+
+/-- Informal declaration from the pasted finite-state note:
+the transfer root should equal the Perron root / spectral radius of the transfer matrix.
+
+This is formalized here as the precise proposition, not as a proved theorem. -/
+noncomputable abbrev pasted_transfer_root_equals_spectral_radius_statement
+    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
+    (A : EdgeShift (Q := Q) (E := E)) : Prop :=
+  A.TransferRootEqualsSpectralRadius
+
+/-- Informal declaration from the pasted finite-state note:
+the spectral radius should equal `exp h_top`.
+
+This is formalized here as the exact proposition parametrized by the candidate entropy `hTop`. -/
+noncomputable abbrev pasted_spectral_radius_equals_exp_topological_entropy_statement
+    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
+    (A : EdgeShift (Q := Q) (E := E)) (hTop : ℝ) : Prop :=
+  A.SpectralRadiusEqualsExpTopologicalEntropy hTop
+
+/-- Informal declaration from the pasted finite-state note:
+`transferRoot = ρ(T) = e^{h_top}`.
+
+This bundles the exact spectral statement as a formal proposition. -/
+noncomputable abbrev pasted_transfer_root_spectral_entropy_statement
+    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
+    (A : EdgeShift (Q := Q) (E := E)) (hTop : ℝ) : Prop :=
+  A.TransferRootSpectralEntropyStatement hTop
+
+/-- Informal declaration from the pasted finite-state / sliding-window note:
+every positive superharmonic weight produces a chain of prefixes whose normalized continuation
+counts never drop below the starting value. -/
+theorem pasted_finite_state_profitable_chain
+    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
+    {A : EdgeShift (Q := Q) (E := E)} {h : Q → ℝ} {Λ : ℝ}
+    (hsuper : A.IsSuperharmonic h Λ) (hΛ : 0 < Λ) (hh : ∀ q, 0 < h q)
+    {n : ℕ} {s : Q} (hcount : 0 < A.continuationCount n s) :
+    ∃ q : EdgeShift.StateChain Q n, ∃ e : EdgeShift.EdgeChain E n,
+      q 0 = s ∧
+      (∀ i : Fin n, e i ∈ A.outEdges (q i.castSucc) ∧ A.dst (e i) = q i.succ) ∧
+      ∀ t : Fin (n + 1), A.phi h Λ (n - t) (q t) ≥ A.phi h Λ n s :=
+  A.exists_phi_chain hsuper hΛ hh hcount
+
+/-- Informal declaration from the pasted de Bruijn/sharpness note:
+for the one-state `d`-regular system, the continuation count is exactly `d^n`. -/
+theorem pasted_regular_one_state_count (d n : ℕ) :
+    (regularOneState d).continuationCount n () = d ^ n :=
+  continuationCount_regularOneState d n
+
+/-- Informal declaration from the pasted finite-state / de Bruijn sharpness note:
+for the one-state `d`-regular system, the transfer root is exactly `d`. -/
+theorem pasted_regular_one_state_transfer_root (d : ℕ) :
+    (regularOneState d).transferRoot = d :=
+  transferRoot_regularOneState d
+
+/-- Informal declaration from the pasted smallest-counterexample note:
+in the two-state system `0 --a,b--> 1 --c--> 0`, the one-step prefix size is exactly one half of
+the total two-step continuation count, so the naive unweighted critical-rate bound fails. -/
+theorem pasted_two_state_half_prefix :
+    (twoStateCounterexample.continuationCount 1 TwoState.one : ℝ) =
+      (1 / 2 : ℝ) * twoStateCounterexample.continuationCount 2 TwoState.zero :=
+  twoState_firstPrefix_is_half
+
+/-- Informal declaration from the pasted smallest-counterexample note:
+`1/2 < 1/√2`, i.e. the naive unweighted critical-rate lower bound fails in the two-state example. -/
+theorem pasted_two_state_unweighted_failure :
+    (1 / 2 : ℝ) < 1 / Real.sqrt 2 :=
+  one_half_lt_inv_sqrt_two
+
+/-- Informal declaration from the pasted automaton-branch note:
+the exact prefix fiber over an admissible prefix is the continuation set from the reached state. -/
+theorem pasted_automaton_prefix_fiber_card
+    {Q σ : Type*} [Fintype Q] [DecidableEq Q] [Fintype σ] [DecidableEq σ]
+    (A : PartialDFA Q σ) {q r : Q} {t s : ℕ} {u : PartialDFA.Word σ t}
+    (hru : A.run q u = some r) :
+    (A.prefixFiber q t s u).card = A.continuationCount s r :=
+  A.card_prefixFiber hru
+
+/-- Informal declaration from the pasted automaton-branch note:
+some length-`t` prefix already carries at least the `N_*(t)^{-1}` average fraction of the full
+length-`t + s` branch. -/
+theorem pasted_automaton_profitable_prefix
+    {Q σ : Type*} [Fintype Q] [DecidableEq Q] [Fintype σ] [DecidableEq σ]
+    (A : PartialDFA Q σ) {q : Q} {t s : ℕ}
+    (hcount : 0 < A.continuationCount (t + s) q) :
+    ∃ u ∈ A.admissibleWords q t, ∃ r,
+      A.run q u = some r ∧
+      A.continuationCount (t + s) q ≤ A.NStar t * A.continuationCount s r :=
+  A.exists_heavy_prefix hcount
+
+/-- Informal declaration from the pasted automaton-branch note:
+the profitable-prefix theorem in ratio form. -/
+theorem pasted_automaton_profitable_prefix_ratio
+    {Q σ : Type*} [Fintype Q] [DecidableEq Q] [Fintype σ] [DecidableEq σ]
+    (A : PartialDFA Q σ) {q : Q} {t s : ℕ}
+    (hcount : 0 < A.continuationCount (t + s) q) :
+    ∃ u ∈ A.admissibleWords q t,
+      (1 : ℚ) / (A.NStar t : ℚ) ≤
+        ((A.prefixFiber q t s u).card : ℚ) / (A.continuationCount (t + s) q : ℚ) :=
+  A.exists_heavy_prefix_ratio hcount
+
+/-- Informal declaration from the pasted automaton-branch note:
+the packaged recurrence `h_A(m,k) ≤ N_*(t) h_A(m - t,k)`. -/
+theorem pasted_automaton_branch_recurrence
+    {Q σ : Type*} [Fintype Q] [DecidableEq Q] [Fintype σ] [DecidableEq σ]
+    (A : PartialDFA Q σ) {m t k : ℕ} (ht : t ≤ m) :
+    A.hA m k ≤ A.NStar t * A.hA (m - t) k :=
+  A.hA_recurrence ht
+
+/-- Informal declaration from the pasted hereditary projection-growth note:
+the adaptive descendant-wise recurrence closes in one step. -/
+theorem pasted_adaptive_projection_step
+    {Q L : ℕ} {K : CodeClass Q}
+    (hHered : Hereditary K) (hGrow : HasAdaptiveProjectionBound (Q := Q) (L := L) K) (n : ℕ) :
+    maxSize K (n + 1) ≤ L * maxSize K n :=
+  maxSize_succ_le_of_adaptiveProjectionBound (Q := Q) (L := L) hHered hGrow n
+
+/-- Informal declaration from the pasted hereditary projection-growth note:
+after descendant-wise reordering, the exact exponential base is `λ`. -/
+theorem pasted_adaptive_projection_exponential_bound
+    {Q L : ℕ} {K : CodeClass Q}
+    (hHered : Hereditary K) (hGrow : HasAdaptiveProjectionBound (Q := Q) (L := L) K) :
+    ∀ n, maxSize K n ≤ L ^ n :=
+  maxSize_le_lambda_pow_of_adaptiveProjectionBound (Q := Q) (L := L) hHered hGrow
+
+/-- Informal declaration from the pasted hereditary projection-growth note:
+with the ambient order fixed, one good step contributes `λ` and the others contribute the trivial
+alphabet factor `Q`. -/
+theorem pasted_fixed_order_projection_step
+    {Q L : ℕ} {K : CodeClass Q} {good : ℕ → Prop} [DecidablePred good]
+    (hHered : Hereditary K) (hGood : HasFixedOrderProjectionBound (Q := Q) (L := L) K good)
+    (n : ℕ) :
+    maxSize K (n + 1) ≤ (if good n then L else Q) * maxSize K n :=
+  maxSize_succ_le_of_fixedOrderProjectionBound
+    (Q := Q) (L := L) (K := K) (good := good) hHered hGood n
+
+/-- Informal declaration from the pasted hereditary projection-growth note:
+closed form of the fixed-order recurrence. -/
+theorem pasted_fixed_order_projection_closed_form
+    {Q L : ℕ} {K : CodeClass Q} {good : ℕ → Prop} [DecidablePred good]
+    (hHered : Hereditary K) (hGood : HasFixedOrderProjectionBound (Q := Q) (L := L) K good) :
+    ∀ n, maxSize K n ≤ Q ^ (n - goodStepCount good n) * L ^ goodStepCount good n :=
+  maxSize_le_of_fixedOrderProjectionBound
+    (Q := Q) (L := L) (K := K) (good := good) hHered hGood
+
+/-- Informal declaration from the pasted hereditary projection-growth note:
+if at least `a m` of the first `b m` fixed-order steps are `λ`-good, then
+`M(b m) ≤ (Q^(b-a) λ^a)^m`. -/
+theorem pasted_fixed_order_density_block_bound
+    {Q L : ℕ} {K : CodeClass Q} {good : ℕ → Prop} [DecidablePred good]
+    (hHered : Hereditary K) (hGood : HasFixedOrderProjectionBound (Q := Q) (L := L) K good)
+    (hLQ : L ≤ Q) {a b : ℕ} (hab : a ≤ b)
+    (hdense : ∀ m, a * m ≤ goodStepCount good (b * m)) :
+    ∀ m, maxSize K (b * m) ≤ (Q ^ (b - a) * L ^ a) ^ m :=
+  maxSize_block_le_basePow_of_fixedOrderDensity
+    (Q := Q) (L := L) (K := K) (good := good) hHered hGood hLQ hab hdense
+
+/-- Informal declaration from the pasted branch-bridge counterexample note:
+the explicit terminal counterexample family has size `choose(k,2)^(n+1)`. -/
+theorem pasted_branch_bridge_counterexample_card (n k : ℕ) :
+    (branchBridgeFamily n k).card = Nat.choose k 2 ^ (n + 1) :=
+  card_branchBridgeFamily n k
+
+/-- Informal declaration from the pasted branch-bridge counterexample note:
+the explicit counterexample family is `k`-sunflower-free. -/
+theorem pasted_branch_bridge_counterexample_sunflower_free (n k : ℕ) (hk : 3 ≤ k) :
+    SunflowerFree (branchBridgeFamily n k) k :=
+  branchBridgeFamily_sunflowerFree n k hk
+
+/-- Informal declaration from the pasted branch-bridge counterexample note:
+the family is already terminal under one-round leaf stripping. -/
+theorem pasted_branch_bridge_counterexample_terminal (n k : ℕ) (hk : 3 ≤ k) :
+    strippedSupportFamily (branchBridgeFamily n k) = branchBridgeFamily n k :=
+  strippedSupport_branchBridgeFamily_eq n k hk
+
+/-- Informal declaration from the pasted branch-bridge counterexample note:
+after any conditioning, a branch with at most `b` free bounded local coordinates has size at most
+`choose(k,2)^b`. -/
+theorem pasted_branch_bridge_bounded_local_branch
+    {n k b : ℕ} (C : BranchBridgeConditioning n k) (free : Finset (Fin (n + 1)))
+    (base : BranchBridgeWord n k) (hk : 3 ≤ k) (hfree : free.card ≤ b) :
+    (boundedLocalCoordinateBranch C free base).card ≤ Nat.choose k 2 ^ b :=
+  boundedLocalCoordinateBranch_card_le_of_free_card_le C free base hk hfree
+
+/-- Informal declaration from the pasted `(4,4)` local-tensor note:
+the explicit local tensor on `F_2^2` is exactly the indicator of the constant-or-injective
+`4`-columns. -/
+theorem pasted_local_character_tensor_exact_support (a b c d : V) :
+    localCharacterTensor a b c d = localIndicator a b c d :=
+  localCharacterTensor_eq_indicator a b c d
+
+/-- Informal declaration from the pasted `(4,4)` local-tensor note:
+on a `4`-sunflower-free transversal code, the global tensor is diagonal on family tuples. -/
+theorem pasted_global_tensor_diagonal_on_sunflower_free
+    {n : ℕ} {C : Finset (TensorWord n)}
+    (hfree : SunflowerFree (transversalFamily (G := V) C) 4)
+    {x : Fin 4 → TensorWord n} (hxC : ∀ t, x t ∈ C) :
+    globalTensorTuple x = if ∀ t : Fin 4, x t = x 0 then 1 else 0 :=
+  globalTensorTuple_eq_ite_allEqual_of_sunflowerFree hfree hxC
+
+/-- Informal declaration from the pasted `(4,4)` local-tensor note:
+the explicit `2+2` flattening factors through `10^n` local mode choices, so its ordinary matrix
+rank is at most `10^n`. -/
+theorem pasted_global_character_matrix_rank_bound (n : ℕ) :
+    (globalCharacterMatrix n).rank ≤ 10 ^ n :=
+  rank_globalCharacterMatrix_le_ten_pow n
 
 end FormalConjectures.Problems.Erdos.E20

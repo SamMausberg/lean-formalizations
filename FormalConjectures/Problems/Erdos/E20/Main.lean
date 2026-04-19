@@ -1,0 +1,16 @@
+import FormalConjectures.Problems.Erdos.E20.Defs
+import FormalConjectures.Problems.Erdos.E20.Decomposition
+import FormalConjectures.Problems.Erdos.E20.SeedProfile
+import FormalConjectures.Problems.Erdos.E20.Branching
+import FormalConjectures.Problems.Erdos.E20.CoverCriteria
+import FormalConjectures.Problems.Erdos.E20.Obstructions
+import FormalConjectures.Problems.Erdos.E20.Examples
+import FormalConjectures.Problems.Erdos.E20.Correlation
+import FormalConjectures.Problems.Erdos.E20.BetaChain
+import FormalConjectures.Problems.Erdos.E20.GapAnalysis
+import FormalConjectures.Problems.Erdos.E20.Counterexample
+import FormalConjectures.Problems.Erdos.E20.TransversalCounterexample
+import FormalConjectures.Problems.Erdos.E20.LeafStripping
+import FormalConjectures.Problems.Erdos.E20.KernelBounds
+import FormalConjectures.Problems.Erdos.E20.ExplicitKernels
+import FormalConjectures.Problems.Erdos.E20.InformalMap

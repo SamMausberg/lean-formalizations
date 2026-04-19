@@ -26,4 +26,4 @@ standalone statements already supported by Lean.
 pdflatex erdos885_forum_note.tex
 ```
 
-No bibliography is needed.
+The note includes a short in-file bibliography; no external `.bib` file is needed.

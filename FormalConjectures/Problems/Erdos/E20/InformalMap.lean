@@ -1,20 +1,8 @@
-import FormalConjectures.Problems.Erdos.E20.LeafStripping
-import FormalConjectures.Problems.Erdos.E20.Counterexample
-import FormalConjectures.Problems.Erdos.E20.TransversalCounterexample
-import FormalConjectures.Problems.Erdos.E20.KernelBounds
-import FormalConjectures.Problems.Erdos.E20.ExplicitKernels
-import FormalConjectures.Problems.Erdos.E20.TerminalLinks
-import FormalConjectures.Problems.Erdos.E20.ProjectionTransfer
-import FormalConjectures.Problems.Erdos.E20.TupleStates
-import FormalConjectures.Problems.Erdos.E20.RecurrenceReduction
-import FormalConjectures.Problems.Erdos.E20.ProfitablePrefix
-import FormalConjectures.Problems.Erdos.E20.FiniteStatePrefixes
-import FormalConjectures.Problems.Erdos.E20.AutomatonBranches
-import FormalConjectures.Problems.Erdos.E20.HereditaryGrowth
-import FormalConjectures.Problems.Erdos.E20.FixedMemoryBound
-import FormalConjectures.Problems.Erdos.E20.BranchBridgeCounterexample
-import FormalConjectures.Problems.Erdos.E20.CharacterTensors
-import FormalConjectures.Problems.Erdos.E20.QuinaryTensor
+import FormalConjectures.Problems.Erdos.E20.Foundations
+import FormalConjectures.Problems.Erdos.E20.Families
+import FormalConjectures.Problems.Erdos.E20.Kernels
+import FormalConjectures.Problems.Erdos.E20.Recurrences
+import FormalConjectures.Problems.Erdos.E20.Tensors
 
 set_option linter.unusedDecidableInType false
 set_option linter.unusedFintypeInType false
@@ -24,8 +12,8 @@ namespace FormalConjectures.Problems.Erdos.E20
 /-- Informal declaration "Theorem (exact one-round sunflower theorem)" from the pasted
 leaf-stripping note:
 this is the compiled nontrivial-cardinality form of the exact one-round theorem proved in
-[LeafStripping.lean]
-(/home/sam/lean-formalizations/FormalConjectures/Problems/Erdos/E20/LeafStripping.lean). -/
+[Kernels/LeafStripping.lean]
+(/home/sam/lean-formalizations/FormalConjectures/Problems/Erdos/E20/Kernels/LeafStripping.lean). -/
 theorem pasted_exact_one_round_sunflower_theorem
     {α : Type*} [DecidableEq α] [Fintype α]
     (H : Finset (Finset α)) (K : Finset α) :
@@ -233,6 +221,88 @@ theorem pasted_pair_tensor_rho_zero
     (t k : ℕ) (hk : 3 ≤ k) :
     rhoOneOut (pairTensorFamily (t + 1) k) k = 0 :=
   rhoOneOut_pairTensorFamily_eq_zero t k hk
+
+/-- Informal declaration from the pasted terminal-kernel reduction note:
+the exact leaf-stripping reduction factor is packaged as the hypothesis that `H` is at most
+`(k - 1)^n` times as large as its stripped terminal kernel. -/
+abbrev pasted_terminal_kernel_reduction_hypothesis
+    {α : Type*} [DecidableEq α] [Fintype α]
+    (k n : ℕ) (H : Finset (Finset α)) : Prop :=
+  HasTerminalKernelReductionAt k n H
+
+/-- Informal declaration from the pasted terminal-kernel reduction note:
+a class of exact terminal kernels carries the exponential base `A` when every `k`-sunflower-free
+`m`-uniform member has size at most `A^m`. -/
+abbrev pasted_terminal_kernel_class_bound
+    {α : Type*} [DecidableEq α] [Fintype α]
+    (C : Finset (Finset α) → Prop) (k : ℕ) (A : ℝ) : Prop :=
+  HasTerminalKernelClassBound C k A
+
+/-- Informal declaration from the pasted terminal-kernel reduction note:
+if the stripped terminal kernel has rank `m ≤ n`, satisfies the exact reduction factor, and has
+size at most `A^m`, then `|H| ≤ ((k - 1) A)^n`. -/
+theorem pasted_terminal_kernel_reduction
+    {α : Type*} [DecidableEq α] [Fintype α]
+    {H : Finset (Finset α)} {n m k : ℕ} {A : ℝ}
+    (hk : 1 ≤ k) (hred : HasTerminalKernelReductionAt k n H)
+    (hmn : m ≤ n) (hA : 1 ≤ A)
+    (hKbound : ((strippedSupportFamily H).card : ℝ) ≤ A ^ m) :
+    (H.card : ℝ) ≤ (((k - 1 : ℝ) * A) ^ n) :=
+  terminalKernelReduction_bound hk hred hmn hA hKbound
+
+/-- Informal declaration from the pasted terminal-kernel reduction note:
+the universal reduction lemma for a controlled class of exact terminal kernels. -/
+theorem pasted_terminal_kernel_class_reduction
+    {α : Type*} [DecidableEq α] [Fintype α]
+    {H : Finset (Finset α)} {n m k : ℕ} {A : ℝ}
+    {C : Finset (Finset α) → Prop}
+    (hk : 1 ≤ k) (hred : HasTerminalKernelReductionAt k n H)
+    (hclass : C (strippedSupportFamily H))
+    (hKuniform : IsRUniform (strippedSupportFamily H) m)
+    (hKfree : SunflowerFree (strippedSupportFamily H) k)
+    (hmn : m ≤ n) (hA : 1 ≤ A)
+    (hbound : HasTerminalKernelClassBound C k A) :
+    (H.card : ℝ) ≤ (((k - 1 : ℝ) * A) ^ n) :=
+  terminalKernelReduction_bound_of_class hk hred hclass hKuniform hKfree hmn hA hbound
+
+/-- Informal declaration from the pasted terminal-kernel reduction note:
+if the stripped terminal kernel is a transversal code family of size at most `A^m`, then the same
+reduction gives `|H| ≤ ((k - 1) A)^n`. -/
+theorem pasted_terminal_transversal_kernel_reduction
+    {G : Type*} [DecidableEq G] [Fintype G]
+    {n m k : ℕ} {A : ℝ}
+    (H : Finset (Finset (Fin m × G)))
+    (hk : 1 ≤ k) (hred : HasTerminalKernelReductionAt k n H)
+    {C : Finset (Fin m → G)}
+    (hkernel : strippedSupportFamily H = transversalFamily (G := G) C)
+    (hmn : m ≤ n) (hA : 1 ≤ A)
+    (hCbound : (C.card : ℝ) ≤ A ^ m) :
+    (H.card : ℝ) ≤ (((k - 1 : ℝ) * A) ^ n) :=
+  terminalKernelReduction_bound_of_transversalKernel H hk hred hkernel hmn hA hCbound
+
+/-- Informal declaration from the pasted terminal-kernel reduction note:
+if the stripped terminal kernel is the full block product on `m` blocks of width `q`, then the
+exact reduction factor gives `|H| ≤ ((k - 1) q)^n`. -/
+theorem pasted_terminal_block_product_kernel_reduction
+    {n m q k : ℕ}
+    (H : Finset (Finset (Fin m × Fin q)))
+    (hk : 1 ≤ k) (hred : HasTerminalKernelReductionAt k n H)
+    (hkernel : strippedSupportFamily H = blockProductFamily m q)
+    (hmn : m ≤ n) (hq : 1 ≤ q) :
+    (H.card : ℝ) ≤ (((k - 1 : ℝ) * q) ^ n) :=
+  terminalKernelReduction_bound_of_blockProductKernel H hk hred hkernel hmn hq
+
+/-- Informal declaration from the pasted terminal-kernel reduction note:
+in the block-product case with maximal allowed block width `k - 1`, the base becomes
+`(k - 1)^(2n)`. -/
+theorem pasted_terminal_block_product_square_bound
+    {n m k : ℕ}
+    (H : Finset (Finset (Fin m × Fin (k - 1))))
+    (hk : 2 ≤ k) (hred : HasTerminalKernelReductionAt k n H)
+    (hkernel : strippedSupportFamily H = blockProductFamily m (k - 1))
+    (hmn : m ≤ n) :
+    (H.card : ℝ) ≤ (k - 1 : ℝ) ^ (2 * n) :=
+  terminalKernelReduction_bound_of_maxWidthBlockProductKernel H hk hred hkernel hmn
 
 /-- Informal declaration
 "if every edge of a kernel `J` meets at most `D` other edges, then `|J| ≤ (D + 1) ν(J)`"

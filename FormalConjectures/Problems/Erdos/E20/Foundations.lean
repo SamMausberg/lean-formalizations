@@ -1,0 +1,10 @@
+import FormalConjectures.Problems.Erdos.E20.Foundations.Defs
+import FormalConjectures.Problems.Erdos.E20.Foundations.Decomposition
+import FormalConjectures.Problems.Erdos.E20.Foundations.SeedProfile
+import FormalConjectures.Problems.Erdos.E20.Foundations.Correlation
+import FormalConjectures.Problems.Erdos.E20.Foundations.BetaChain
+import FormalConjectures.Problems.Erdos.E20.Foundations.Branching
+import FormalConjectures.Problems.Erdos.E20.Foundations.CoverCriteria
+import FormalConjectures.Problems.Erdos.E20.Foundations.Obstructions
+import FormalConjectures.Problems.Erdos.E20.Foundations.Examples
+import FormalConjectures.Problems.Erdos.E20.Foundations.GapAnalysis

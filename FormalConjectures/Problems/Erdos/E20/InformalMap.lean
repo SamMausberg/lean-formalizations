@@ -11,8 +11,10 @@ import FormalConjectures.Problems.Erdos.E20.ProfitablePrefix
 import FormalConjectures.Problems.Erdos.E20.FiniteStatePrefixes
 import FormalConjectures.Problems.Erdos.E20.AutomatonBranches
 import FormalConjectures.Problems.Erdos.E20.HereditaryGrowth
+import FormalConjectures.Problems.Erdos.E20.FixedMemoryBound
 import FormalConjectures.Problems.Erdos.E20.BranchBridgeCounterexample
 import FormalConjectures.Problems.Erdos.E20.CharacterTensors
+import FormalConjectures.Problems.Erdos.E20.QuinaryTensor
 
 set_option linter.unusedDecidableInType false
 set_option linter.unusedFintypeInType false
@@ -524,6 +526,22 @@ theorem pasted_fixed_order_density_block_bound
   maxSize_block_le_basePow_of_fixedOrderDensity
     (Q := Q) (L := L) (K := K) (good := good) hHered hGood hLQ hab hdense
 
+/-- Informal declaration from the pasted fixed-memory note:
+after choosing one forbidden length-`r` block, every proper `q`-ary `r`-step branch satisfies the
+exact block recursion `|L_{n + r}| ≤ (q^r - 1) |L_n|`. -/
+theorem pasted_fixed_memory_block_step
+    {q r n : ℕ} (X : FixedMemoryBranch q r) :
+    (X.language (n + r)).card ≤ (q ^ r - 1) * (X.language n).card :=
+  X.card_language_add_le n
+
+/-- Informal declaration from the pasted fixed-memory note:
+iterating the one-block recursion gives the closed-form bound
+`|L_n| ≤ q^(n mod r) (q^r - 1)^(n div r)`. -/
+theorem pasted_fixed_memory_block_bound
+    {q r n : ℕ} (X : FixedMemoryBranch q r) :
+    (X.language n).card ≤ q ^ (n % r) * (q ^ r - 1) ^ (n / r) :=
+  X.card_language_bound n
+
 /-- Informal declaration from the pasted branch-bridge counterexample note:
 the explicit terminal counterexample family has size `choose(k,2)^(n+1)`. -/
 theorem pasted_branch_bridge_counterexample_card (n k : ℕ) :
@@ -559,6 +577,14 @@ theorem pasted_local_character_tensor_exact_support (a b c d : V) :
   localCharacterTensor_eq_indicator a b c d
 
 /-- Informal declaration from the pasted `(4,4)` local-tensor note:
+the user's explicit `F_2`-valued local tensor
+`δ(0, x₁ + x₂ + x₃ + x₄) ω(x₁ + x₂, x₁ + x₃) + δ(x₁, x₂) δ(x₁, x₃) δ(x₁, x₄)`
+is exactly the indicator of the constant-or-injective `4`-columns. -/
+theorem pasted_explicit_local_tensor_exact_support (a b c d : V) :
+    explicitLocalTensor a b c d = localIndicatorF2 a b c d :=
+  explicitLocalTensor_eq_indicatorF2 a b c d
+
+/-- Informal declaration from the pasted `(4,4)` local-tensor note:
 on a `4`-sunflower-free transversal code, the global tensor is diagonal on family tuples. -/
 theorem pasted_global_tensor_diagonal_on_sunflower_free
     {n : ℕ} {C : Finset (TensorWord n)}
@@ -568,10 +594,37 @@ theorem pasted_global_tensor_diagonal_on_sunflower_free
   globalTensorTuple_eq_ite_allEqual_of_sunflowerFree hfree hxC
 
 /-- Informal declaration from the pasted `(4,4)` local-tensor note:
+for the explicit `F_2`-valued local tensor, the global product tensor is diagonal on tuples from a
+`4`-sunflower-free transversal code. -/
+theorem pasted_explicit_global_tensor_diagonal_on_sunflower_free
+    {n : ℕ} {C : Finset (TensorWord n)}
+    (hfree : SunflowerFree (transversalFamily (G := V) C) 4)
+    {x : Fin 4 → TensorWord n} (hxC : ∀ t, x t ∈ C) :
+    explicitGlobalTensorTuple x = if ∀ t : Fin 4, x t = x 0 then 1 else 0 :=
+  explicitGlobalTensorTuple_eq_ite_allEqual_of_sunflowerFree hfree hxC
+
+/-- Informal declaration from the pasted `(4,4)` local-tensor note:
 the explicit `2+2` flattening factors through `10^n` local mode choices, so its ordinary matrix
 rank is at most `10^n`. -/
 theorem pasted_global_character_matrix_rank_bound (n : ℕ) :
     (globalCharacterMatrix n).rank ≤ 10 ^ n :=
   rank_globalCharacterMatrix_le_ten_pow n
+
+/-- Informal declaration from the pasted `(5,5)` diagonal-tensor note:
+the explicit local tensor over `F_5` is exactly the indicator of the constant-or-injective
+`5`-columns. -/
+theorem pasted_quinary_local_tensor_exact_support (a b c d e : V5) :
+    explicitLocalTensor5 a b c d e = localIndicator5 a b c d e :=
+  explicitLocalTensor5_eq_indicator5 a b c d e
+
+/-- Informal declaration from the pasted `(5,5)` diagonal-tensor note:
+on a `5`-sunflower-free transversal code over `F_5`, the global product tensor is diagonal on
+family tuples. -/
+theorem pasted_quinary_global_tensor_diagonal_on_sunflower_free
+    {n : ℕ} {C : Finset (QuinaryWord n)}
+    (hfree : SunflowerFree (transversalFamily (G := V5) C) 5)
+    {x : Fin 5 → QuinaryWord n} (hxC : ∀ t, x t ∈ C) :
+    explicitGlobalTensor5Tuple x = if ∀ t : Fin 5, x t = x 0 then 1 else 0 :=
+  explicitGlobalTensor5Tuple_eq_ite_allEqual_of_sunflowerFree hfree hxC
 
 end FormalConjectures.Problems.Erdos.E20

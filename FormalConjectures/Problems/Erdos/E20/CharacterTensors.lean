@@ -83,6 +83,68 @@ instance instDecidableLocalConstantOrInjective (a b c d : V) :
 def localIndicator (a b c d : V) : ℚ :=
   if localConstantOrInjective a b c d then 1 else 0
 
+/-- The bit value of an element of `Fin 2`, viewed in `ZMod 2`. -/
+def bitVal (x : Fin 2) : ZMod 2 :=
+  x.1
+
+/-- The local Kronecker delta from the user's `(4,4)` diagonal-tensor note, written on
+`V = F_2^2`. -/
+def deltaF2 (u v : V) : ZMod 2 :=
+  (1 + bitVal u.1 + bitVal v.1) * (1 + bitVal u.2 + bitVal v.2)
+
+/-- The alternating bilinear form from the user's `(4,4)` diagonal-tensor note, written on
+`V = F_2^2`. -/
+def omegaF2 (u v : V) : ZMod 2 :=
+  bitVal u.1 * bitVal v.2 + bitVal u.2 * bitVal v.1
+
+/-- The explicit local `F_2`-valued tensor from the user's `(4,4)` note. -/
+def explicitLocalTensor (a b c d : V) : ZMod 2 :=
+  deltaF2 (0, 0) (a + b + c + d) * omegaF2 (a + b) (a + c) +
+    deltaF2 a b * deltaF2 a c * deltaF2 a d
+
+/-- The `ZMod 2` indicator of the constant-or-injective local support. -/
+def localIndicatorF2 (a b c d : V) : ZMod 2 :=
+  if localConstantOrInjective a b c d then 1 else 0
+
+set_option linter.style.nativeDecide false in
+theorem deltaF2_eq_iff (u v : V) :
+    deltaF2 u v = 1 ↔ u = v := by
+  rcases u with ⟨u₀, u₁⟩
+  rcases v with ⟨v₀, v₁⟩
+  fin_cases u₀ <;> fin_cases u₁ <;> fin_cases v₀ <;> fin_cases v₁ <;>
+    native_decide
+
+set_option linter.style.nativeDecide false in
+theorem omegaF2_eq_one_iff (u v : V) :
+    omegaF2 u v = 1 ↔ u ≠ (0, 0) ∧ v ≠ (0, 0) ∧ u ≠ v := by
+  rcases u with ⟨u₀, u₁⟩
+  rcases v with ⟨v₀, v₁⟩
+  fin_cases u₀ <;> fin_cases u₁ <;> fin_cases v₀ <;> fin_cases v₁ <;>
+    native_decide
+
+set_option linter.style.nativeDecide false in
+theorem explicitLocalTensor_eq_indicatorF2 (a b c d : V) :
+    explicitLocalTensor a b c d = localIndicatorF2 a b c d := by
+  rcases a with ⟨a₀, a₁⟩
+  rcases b with ⟨b₀, b₁⟩
+  rcases c with ⟨c₀, c₁⟩
+  rcases d with ⟨d₀, d₁⟩
+  fin_cases a₀ <;> fin_cases a₁ <;>
+    fin_cases b₀ <;> fin_cases b₁ <;>
+    fin_cases c₀ <;> fin_cases c₁ <;>
+    fin_cases d₀ <;> fin_cases d₁ <;>
+    native_decide
+
+theorem explicitLocalTensor_eq_one_iff_constantOrInjective (a b c d : V) :
+    explicitLocalTensor a b c d = 1 ↔ localConstantOrInjective a b c d := by
+  rw [explicitLocalTensor_eq_indicatorF2, localIndicatorF2]
+  by_cases h : localConstantOrInjective a b c d <;> simp [h]
+
+theorem explicitLocalTensor_eq_zero_iff_not_constantOrInjective (a b c d : V) :
+    explicitLocalTensor a b c d = 0 ↔ ¬ localConstantOrInjective a b c d := by
+  rw [explicitLocalTensor_eq_indicatorF2, localIndicatorF2]
+  by_cases h : localConstantOrInjective a b c d <;> simp [h]
+
 /-- Diagonal character mode on ordered pairs. -/
 def eqModeFeature (u : V) (p : V × V) : ℚ :=
   if p.2 = p.1 then char u p.1 else 0
@@ -163,6 +225,11 @@ section GlobalTensor
 
 abbrev TensorWord (n : ℕ) : Type := Fin n → V
 
+/-- The global product tensor obtained from the explicit `F_2`-valued local formula in the user's
+`(4,4)` note. -/
+def explicitGlobalTensorTuple {n : ℕ} (x : Fin 4 → TensorWord n) : ZMod 2 :=
+  ∏ i : Fin n, explicitLocalTensor (x 0 i) (x 1 i) (x 2 i) (x 3 i)
+
 /-- The global product tensor: multiply the local character tensor over all coordinates. -/
 def globalTensorTuple {n : ℕ} (x : Fin 4 → TensorWord n) : ℚ :=
   ∏ i : Fin n, localCharacterTensor (x 0 i) (x 1 i) (x 2 i) (x 3 i)
@@ -170,6 +237,21 @@ def globalTensorTuple {n : ℕ} (x : Fin 4 → TensorWord n) : ℚ :=
 /-- Coordinatewise local support for a `4`-tuple of words. -/
 def ColumnwiseConstantOrInjective {n : ℕ} (x : Fin 4 → TensorWord n) : Prop :=
   ∀ i : Fin n, localConstantOrInjective (x 0 i) (x 1 i) (x 2 i) (x 3 i)
+
+theorem columnwiseConstantOrInjective_of_explicitGlobalTensor_ne_zero
+    {n : ℕ} {x : Fin 4 → TensorWord n} (h : explicitGlobalTensorTuple x ≠ 0) :
+    ColumnwiseConstantOrInjective x := by
+  intro i
+  by_contra hi
+  have hzero :
+      explicitLocalTensor (x 0 i) (x 1 i) (x 2 i) (x 3 i) = 0 := by
+    rw [explicitLocalTensor_eq_zero_iff_not_constantOrInjective]
+    exact hi
+  have hprod : explicitGlobalTensorTuple x = 0 := by
+    unfold explicitGlobalTensorTuple
+    apply Finset.prod_eq_zero_iff.mpr
+    exact ⟨i, by simp, hzero⟩
+  exact h hprod
 
 theorem columnwiseConstantOrInjective_of_globalTensor_ne_zero
     {n : ℕ} {x : Fin 4 → TensorWord n} (h : globalTensorTuple x ≠ 0) :
@@ -248,6 +330,63 @@ theorem injective_of_columnwiseConstantOrInjective_of_not_allEqual
         fin_cases s <;> fin_cases t <;> simpa [col] using hst
       exact hinj hraw
     exact huv (hinjCol huvi)
+
+/-- On an injective `4`-tuple from a `4`-sunflower-free family, the explicit `F_2` tensor
+vanishes. -/
+theorem explicitGlobalTensorTuple_eq_zero_of_sunflowerFree
+    {n : ℕ} {C : Finset (TensorWord n)}
+    (hfree : SunflowerFree (transversalFamily (G := V) C) 4)
+    {x : Fin 4 → TensorWord n} (hxC : ∀ t, x t ∈ C) (hxinj : Function.Injective x) :
+    explicitGlobalTensorTuple x = 0 := by
+  by_contra hne
+  have hcol : ColumnwiseConstantOrInjective x :=
+    columnwiseConstantOrInjective_of_explicitGlobalTensor_ne_zero hne
+  have hSun : IsSunflowerTuple (fun t => transversalEdge (x t)) :=
+    hcol.isSunflowerTuple_transversal
+  have hEdgeInj : Function.Injective (fun t => transversalEdge (x t)) := by
+    intro u v huv
+    exact hxinj (transversalEdge_injective huv)
+  have hmem : ∀ t, transversalEdge (x t) ∈ transversalFamily (G := V) C := by
+    intro t
+    exact Finset.mem_image.mpr ⟨x t, hxC t, rfl⟩
+  exact hfree (fun t => transversalEdge (x t)) hmem hEdgeInj hSun
+
+theorem explicitGlobalTensorTuple_eq_one_of_allEqual
+    {n : ℕ} {x : Fin 4 → TensorWord n} (hall : ∀ t : Fin 4, x t = x 0) :
+    explicitGlobalTensorTuple x = 1 := by
+  unfold explicitGlobalTensorTuple
+  refine Finset.prod_eq_one ?_
+  intro i hi
+  have h01 : x 0 i = x 1 i := by
+    simpa using congrArg (fun f : TensorWord n => f i) (hall 1).symm
+  have h12 : x 1 i = x 2 i := by
+    calc
+      x 1 i = x 0 i := by simpa using congrArg (fun f : TensorWord n => f i) (hall 1)
+      _ = x 2 i := by simpa using congrArg (fun f : TensorWord n => f i) (hall 2).symm
+  have h23 : x 2 i = x 3 i := by
+    calc
+      x 2 i = x 0 i := by simpa using congrArg (fun f : TensorWord n => f i) (hall 2)
+      _ = x 3 i := by simpa using congrArg (fun f : TensorWord n => f i) (hall 3).symm
+  rw [explicitLocalTensor_eq_one_iff_constantOrInjective]
+  exact Or.inl ⟨h01, h12, h23⟩
+
+/-- On a `4`-sunflower-free code over `V = F_2^2`, the explicit `F_2` tensor is diagonal: among
+tuples from the family it survives exactly on the all-equal tuples. -/
+theorem explicitGlobalTensorTuple_eq_ite_allEqual_of_sunflowerFree
+    {n : ℕ} {C : Finset (TensorWord n)}
+    (hfree : SunflowerFree (transversalFamily (G := V) C) 4)
+    {x : Fin 4 → TensorWord n} (hxC : ∀ t, x t ∈ C) :
+    explicitGlobalTensorTuple x = if ∀ t : Fin 4, x t = x 0 then 1 else 0 := by
+  by_cases hall : ∀ t : Fin 4, x t = x 0
+  · simp [hall, explicitGlobalTensorTuple_eq_one_of_allEqual hall]
+  · have hzero : explicitGlobalTensorTuple x = 0 := by
+      by_contra hne
+      have hcol : ColumnwiseConstantOrInjective x :=
+        columnwiseConstantOrInjective_of_explicitGlobalTensor_ne_zero hne
+      have hxinj : Function.Injective x :=
+        injective_of_columnwiseConstantOrInjective_of_not_allEqual hcol hall
+      exact hne (explicitGlobalTensorTuple_eq_zero_of_sunflowerFree hfree hxC hxinj)
+    simp [hall, hzero]
 
 /-- On an injective `4`-tuple from a `4`-sunflower-free family, the global tensor vanishes. -/
 theorem globalTensorTuple_eq_zero_of_sunflowerFree

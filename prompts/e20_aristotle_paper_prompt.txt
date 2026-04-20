@@ -1,0 +1,80 @@
+You are working inside a Lean project that contains formal findings for Erdos Problem E20.
+
+Task:
+Generate a fresh professional LaTeX writeup covering every mathematical statement currently
+formalized for E20 in this project.
+
+Hard requirements:
+- Produce a new self-contained LaTeX source file named `e20_formalized_statements_paper.tex`.
+- Base the document on the current Lean files under `FormalConjectures/Problems/Erdos/E20/`.
+- Treat the Lean files as the source of truth for what is actually formalized.
+- Cover every currently formalized theorem/lemma/corollary-style statement in the E20 project.
+  The main text may synthesize by theme, but include an appendix or final catalog that accounts
+  for all formalized statements module-by-module.
+- Distinguish clearly between:
+  1. exact formal theorems,
+  2. explicit examples / counterexamples / constructions,
+  3. definitions and proof frameworks,
+  4. target propositions or packaging definitions that are not themselves proved theorems.
+- Do not overclaim. If a file packages a conjectural or desired statement only as a `def` or
+  `Prop`, say that explicitly.
+- The document should read like a mathematical research note or formalization survey, not a code
+  dump.
+
+Project-specific guidance:
+- Read `FormalConjectures/Problems/Erdos/E20/Main.lean` for the full module list.
+- Read `FormalConjectures/Problems/Erdos/E20/InformalMap.lean` for the informal-to-formal bridge.
+- Use `THEOREM_INVENTORY.txt` in the bundle as a checklist so no module is skipped.
+- Use module docstrings and theorem names carefully.
+
+Accuracy constraints:
+- In `FiniteStatePrefixes.lean`, the objects
+  `TransferRootEqualsSpectralRadius`,
+  `SpectralRadiusEqualsExpTopologicalEntropy`, and
+  `TransferRootSpectralEntropyStatement`
+  are packaged as definitions of target propositions. Do not present them as proved theorems
+  unless the file contains an actual theorem proving them.
+- In `CharacterTensors.lean`, report exactly what is formalized: the local constant-or-injective
+  tensor, the global sunflower-diagonalization statements, the matrix factorization, and the rank
+  bound `rank_globalCharacterMatrix_le_ten_pow`. Do not invent a stronger slice-rank theorem.
+- In `AutomatonBranches.lean`, `ProjectionTransfer.lean`, `TupleStates.lean`,
+  `RecurrenceReduction.lean`, `ProfitablePrefix.lean`, `HereditaryGrowth.lean`, and
+  `BranchBridgeCounterexample.lean`, describe the finite-state / projection-growth machinery at
+  the exact level proved in Lean.
+- If a statement is formalized only in a weakened finite witness form, state the weakened formal
+  version honestly.
+
+Desired structure:
+- Title, abstract, introduction, and a short status summary of the E20 formalization.
+- Problem statement and notation.
+- A section on the classical/core E20 modules:
+  leaf stripping, decomposition, seed/profile methods, branching, cover criteria, obstructions,
+  examples, correlations, beta-chain, and gap analysis.
+- A section on the explicit kernel and obstruction constructions:
+  simplex-family / complete-graph-dual counterexamples, parity/transversal obstructions,
+  block-product kernels, pair-tensor kernels, bounded-overlap and bounded-degree bounds,
+  and terminal-link bounded-alphabet skeletons.
+- A section on projection transfer, tuple states, and recurrence reduction.
+- A section on profitable-prefix results:
+  parity-prefix obstructions, finite-state superharmonic profitable chains,
+  automaton branch heavy-prefix theorems, and hereditary projection-growth bounds.
+- A section on the branch-bridge counterexample.
+- A section on the character-tensor formalization and its precise consequences.
+- A final status section that states clearly what is fully formalized, what is only packaged as a
+  target statement, and what remains open.
+- A theorem catalog appendix grouped by Lean module, covering every formalized statement.
+
+Style requirements:
+- Use a clean professional article structure with theorem-like environments.
+- Prefer concise mathematical exposition over long informal commentary.
+- Use notation consistently and define it once.
+- Mention Lean file names in prose where helpful, for example “formalized in
+  `FiniteStatePrefixes.lean`”.
+- It is fine to mention theorem names in the appendix, but the main text should read as a
+  mathematical writeup.
+- Avoid fabricated bibliography entries. If the bundle does not provide precise citation data,
+  keep references modest.
+
+Output:
+- `e20_formalized_statements_paper.tex`
+- optionally a short `README.md` in the result directory explaining compile assumptions

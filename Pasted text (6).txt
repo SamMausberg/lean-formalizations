@@ -1,0 +1,252 @@
+Here is a complete diagonal-tensor proof for the (q=k=5) model.
+
+Set
+[
+F(m):=F_{5,5}(m).
+]
+I will prove
+[
+F(m)\le \left(\frac{19}{4}\right)^m \qquad (m\ge 1).
+]
+
+Throughout, identify ([5]) with (\mathbb F_5={0,1,2,3,4}).
+
+## 1. The local object
+
+For (t\in \mathbb F_5), define
+[
+\delta_t(z):=1-(z-t)^4.
+]
+Because (u^4=0) if (u=0) and (u^4=1) if (u\neq 0) in (\mathbb F_5), this is exactly the point-mass:
+[
+\delta_t(z)=
+\begin{cases}
+1,& z=t,\
+0,& z\neq t.
+\end{cases}
+]
+
+Now define the explicit local function (P_0:\mathbb F_5^5\to \mathbb F_5) by
+[
+P_0(a_1,\dots,a_5)
+:=
+\prod_{i=1}^4 \delta_0(a_i-a_5)
+;+;
+\sum_{\sigma\in S_4}\ \prod_{i=1}^4 \delta_{\sigma(i)}(a_i-a_5).
+\tag{1}
+]
+
+### Exact local support
+
+Let (y_i:=a_i-a_5) for (1\le i\le 4).
+
+Then the first term in (1) is the indicator of
+[
+(y_1,y_2,y_3,y_4)=(0,0,0,0),
+]
+that is, of
+[
+a_1=a_2=a_3=a_4=a_5.
+]
+
+The sum over (S_4) is the indicator of
+[
+(y_1,y_2,y_3,y_4)\in {(\sigma(1),\sigma(2),\sigma(3),\sigma(4)):\sigma\in S_4},
+]
+that is, of the four differences (a_i-a_5) being exactly the four nonzero elements of (\mathbb F_5) in some order. Equivalently,
+[
+{a_1,a_2,a_3,a_4,a_5}=\mathbb F_5,
+]
+so ((a_1,\dots,a_5)) is injective.
+
+Therefore
+[
+P_0(a_1,\dots,a_5)\neq 0
+\iff
+(a_1,\dots,a_5)\text{ is constant or injective.}
+\tag{2}
+]
+In fact (P_0\in{0,1}) pointwise.
+
+So this is exactly the local tensor the diagonal method wants.
+
+## 2. Degree (16)
+
+As written in the difference variables (y_i=a_i-a_5), each summand in (1) is a product of four degree-(4) factors, so (P_0) has total degree (16) as a polynomial in the four variables (y_1,\dots,y_4).
+
+Hence the composed polynomial
+[
+Q(a_1,\dots,a_5):=P_0(a_1,\dots,a_5)
+]
+viewed as a polynomial in (a_1,\dots,a_5) via (y_i=a_i-a_5), has total degree at most (16).
+
+Now reduce each scalar variable modulo the identity (z^5=z) on (\mathbb F_5): whenever a monomial contains (z^e) with (e\ge 5), replace (z^e) by (z^{e-4}). This does not change the induced function on (\mathbb F_5), and each such reduction lowers total degree by (4).
+
+So there is a polynomial (P:\mathbb F_5^5\to\mathbb F_5) such that
+
+* (P=P_0) pointwise on (\mathbb F_5^5),
+* each scalar variable appears with degree at most (4),
+* the total degree of (P) is at most (16).
+
+That is the version we use for slice rank.
+
+## 3. Global tensor and exact diagonalization
+
+Let (C\subseteq \mathbb F_5^m) be sunflower-free in the stated sense. Define
+[
+T_m(x^{(1)},\dots,x^{(5)})
+:=
+\prod_{j=1}^m
+P\bigl(x^{(1)}_j,\dots,x^{(5)}_j\bigr).
+\tag{3}
+]
+
+I claim that (T_m) is diagonal on (C).
+
+Take (x^{(1)},\dots,x^{(5)}\in C) and suppose
+[
+T_m(x^{(1)},\dots,x^{(5)})\neq 0.
+]
+Then by (2), for every coordinate (j), the local column
+[
+\bigl(x^{(1)}_j,\dots,x^{(5)}_j\bigr)
+]
+is either constant or injective.
+
+If two of the codewords coincide, say (x^{(r)}=x^{(s)}) with (r\neq s), then in every coordinate the entries in positions (r,s) are equal, so the column cannot be injective. Hence every coordinate column must be constant. Therefore all five codewords are equal.
+
+So any nonzero off-diagonal entry would necessarily come from five distinct codewords. But then every coordinate is constant or injective, so those five distinct codewords form a sunflower, contradicting the hypothesis on (C).
+
+Thus, on (C^5),
+[
+T_m(x^{(1)},\dots,x^{(5)})=
+\begin{cases}
+1,& x^{(1)}=\cdots=x^{(5)},\
+0,& \text{otherwise.}
+\end{cases}
+]
+So (T_m|_{C^5}) is a diagonal tensor with (|C|) nonzero diagonal entries.
+
+Hence, by the standard diagonal-tensor fact for slice rank,
+[
+|C|\le \operatorname{slice_rank}(T_m).
+\tag{4}
+]
+
+## 4. Slice-rank bound
+
+Write the (r)-th codeword block as
+[
+X^{(r)}=(x^{(r)}_1,\dots,x^{(r)}_m)\in\mathbb F_5^m.
+]
+Since each local factor (P) has total degree at most (16), the polynomial (T_m) has total degree at most (16m). Also each scalar coordinate variable has degree at most (4).
+
+Expand (T_m) into monomials:
+[
+T_m=\sum c_{\alpha^{(1)},\dots,\alpha^{(5)}}
+\prod_{r=1}^5 (X^{(r)})^{\alpha^{(r)}},
+]
+where each (\alpha^{(r)}\in{0,1,2,3,4}^m), and whenever the coefficient is nonzero,
+[
+|\alpha^{(1)}|+\cdots+|\alpha^{(5)}|\le 16m.
+]
+Therefore at least one block satisfies
+[
+|\alpha^{(r)}|\le \left\lfloor \frac{16m}{5}\right\rfloor=:d.
+]
+Group each monomial by the least such (r). For fixed (r) and fixed (\alpha\in{0,1,2,3,4}^m) with (|\alpha|\le d), all monomials in that group contribute a slice of the form
+[
+(X^{(r)})^\alpha \cdot H_{r,\alpha}(X^{(1)},\dots,\widehat{X^{(r)}},\dots,X^{(5)}).
+]
+So
+[
+\operatorname{slice_rank}(T_m)\le 5,N_m(d),
+\tag{5}
+]
+where
+[
+N_m(d):=#{\alpha\in{0,1,2,3,4}^m: |\alpha|\le d}.
+]
+
+Now bound (N_m(d)) by a generating function. Using (2^{|\alpha|}\ge 1) and (|\alpha|\le d),
+[
+N_m(d)
+\le 2^{-d}\sum_{\alpha\in{0,1,2,3,4}^m}2^{|\alpha|}
+=2^{-d}(1+2+2^2+2^3+2^4)^m
+=2^{-d}31^m.
+]
+So from (4) and (5),
+[
+|C|
+\le 5\cdot 31^m\cdot 2^{-\lfloor 16m/5\rfloor}.
+\tag{6}
+]
+
+For (m\ge 5),
+[
+\left\lfloor \frac{16m}{5}\right\rfloor \ge 3m+1,
+]
+hence
+[
+|C|
+\le \frac52\left(\frac{31}{8}\right)^m.
+\tag{7}
+]
+
+Now compare this with ((19/4)^m). Since
+[
+2\cdot 38^5=158{,}470{,}336
+
+>
+
+143{,}145{,}755=5\cdot 31^5,
+]
+we have
+[
+\left(\frac{38}{31}\right)^5>\frac52.
+]
+Because (38/31>1), it follows that for every (m\ge 5),
+[
+\left(\frac{38}{31}\right)^m\ge \left(\frac{38}{31}\right)^5>\frac52.
+]
+Equivalently,
+[
+\frac52\left(\frac{31}{8}\right)^m<\left(\frac{19}{4}\right)^m.
+]
+Combining with (7), for all (m\ge 5),
+[
+F(m)\le \left(\frac{19}{4}\right)^m.
+\tag{8}
+]
+
+## 5. Small (m)
+
+It remains to handle (m=1,2,3,4).
+
+Clearly (F(1)\le 4): all five symbols in (\mathbb F_5) would already form an injective sunflower.
+
+Also
+[
+F(m)\le 5F(m-1)
+]
+for every (m\ge 2), because partitioning by the first coordinate gives five fibers, and a sunflower inside a fiber is also a sunflower in the whole code.
+
+So
+[
+F(2)\le 20,\qquad F(3)\le 100,\qquad F(4)\le 500.
+]
+And these satisfy
+[
+4<\frac{19}{4},\qquad
+20<\left(\frac{19}{4}\right)^2,\qquad
+100<\left(\frac{19}{4}\right)^3,\qquad
+500<\left(\frac{19}{4}\right)^4.
+]
+
+Together with (8), this proves the uniform bound.
+
+[
+\boxed{F_{5,5}(m)\le \left(\frac{19}{4}\right)^m \quad\text{for all }m\ge 1.}
+]
+
+(And the slice-rank count itself is much stronger asymptotically: optimizing the monomial estimate gives an eventual base below (3.38). But the clean all-(m) theorem above is already ((19/4)^m).)

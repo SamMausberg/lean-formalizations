@@ -21,6 +21,8 @@ import FormalConjectures.Problems.Erdos.E20.ProfitablePrefix
 import FormalConjectures.Problems.Erdos.E20.FiniteStatePrefixes
 import FormalConjectures.Problems.Erdos.E20.AutomatonBranches
 import FormalConjectures.Problems.Erdos.E20.HereditaryGrowth
+import FormalConjectures.Problems.Erdos.E20.FixedMemoryBound
 import FormalConjectures.Problems.Erdos.E20.BranchBridgeCounterexample
 import FormalConjectures.Problems.Erdos.E20.CharacterTensors
+import FormalConjectures.Problems.Erdos.E20.QuinaryTensor
 import FormalConjectures.Problems.Erdos.E20.InformalMap

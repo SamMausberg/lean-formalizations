@@ -71,17 +71,41 @@ theorem projected_branch_sunflower_free
   · intro i j hij; have := @hinjective i j; simp_all +decide [ Finset.ext_iff ] ;
   · grind
 
+theorem traceFamily_uniform
+    (G : Finset (Finset α)) (P : Finset α) (r : ℕ)
+    (hsp : IsSupportPiece G P r) :
+    IsUniform (traceFamily G P) r := by
+  intro τ hτ
+  rcases Finset.mem_image.mp hτ with ⟨A, hA, rfl⟩
+  exact hsp.2 A hA
+
+theorem trace_family_bound
+    (G : Finset (Finset α)) (P : Finset α) (r k : ℕ)
+    (hsp : IsSupportPiece G P r)
+    (htrace_free : SunflowerFree (traceFamily G P) k)
+    (hsup : BddAbove {c : ℕ | ∃ (β : Type) (_ : DecidableEq β) (_ : Fintype β)
+      (F : Finset (Finset β)), IsUniform F r ∧ SunflowerFree F k ∧ F.card = c}) :
+    (traceFamily G P).card ≤ sunflowerThreshold r k := by
+  have htrace_uni : IsUniform (traceFamily G P) r :=
+    traceFamily_uniform G P r hsp
+  have htrace_card :
+      (traceFamily G P).card ≤ sunflowerNumber r k := by
+    unfold sunflowerNumber
+    exact le_csSup hsup
+      ⟨α, inferInstance, inferInstance, traceFamily G P,
+        htrace_uni, htrace_free, rfl⟩
+  exact le_trans htrace_card (Nat.le_succ _)
+
 /-- **Theorem 4.2, consequence: trace recursion bound.**
-If `G` is `m`-uniform and `k`-sunflower-free, and `P` is a support piece of rank `r`
-with `Tr_P(G)` itself `k`-sunflower-free, then
-  `|G| ≤ |Tr_P(G)| · f(m - r, k) ≤ f(r, k) · f(m - r, k)`.
+If `G` is `m`-uniform and `k`-sunflower-free, and `P` is a support piece of rank `r`,
+then
+  `|G| ≤ |Tr_P(G)| · f(m - r, k)`.
 
 We formalize the first inequality. -/
 theorem trace_recursion_bound
     (G : Finset (Finset α)) (P : Finset α) (r m k : ℕ)
     (huni : IsUniform G m) (hsp : IsSupportPiece G P r)
     (hfree : SunflowerFree G k)
-    (htrace_free : SunflowerFree (traceFamily G P) k)
     (hsup : BddAbove {c : ℕ | ∃ (β : Type) (_ : DecidableEq β) (_ : Fintype β)
       (F : Finset (Finset β)), IsUniform F (m - r) ∧ SunflowerFree F k ∧ F.card = c}) :
     G.card ≤ (traceFamily G P).card * sunflowerThreshold (m - r) k := by
@@ -104,6 +128,26 @@ theorem trace_recursion_bound
         (traceFamily G P).card * sunflowerThreshold (m - r) k := by
     simpa [Nat.mul_comm] using Finset.sum_le_sum branch_bound
   exact (exact_trace_identity G P r m huni hsp).trans_le hsum
+
+/-! The product-bound consequence needs a separate boundedness hypothesis for the
+trace family, which is why the trace-family cardinality is bounded first. -/
+theorem trace_recursion_product_bound
+    (G : Finset (Finset α)) (P : Finset α) (r m k : ℕ)
+    (huni : IsUniform G m) (hsp : IsSupportPiece G P r)
+    (hfree : SunflowerFree G k)
+    (htrace_free : SunflowerFree (traceFamily G P) k)
+    (hsup_trace : BddAbove {c : ℕ | ∃ (β : Type) (_ : DecidableEq β) (_ : Fintype β)
+      (F : Finset (Finset β)), IsUniform F r ∧ SunflowerFree F k ∧ F.card = c})
+    (hsup_branch : BddAbove {c : ℕ | ∃ (β : Type) (_ : DecidableEq β) (_ : Fintype β)
+      (F : Finset (Finset β)), IsUniform F (m - r) ∧ SunflowerFree F k ∧ F.card = c}) :
+    G.card ≤ sunflowerThreshold r k * sunflowerThreshold (m - r) k := by
+  have htrace_bound : (traceFamily G P).card ≤ sunflowerThreshold r k :=
+    trace_family_bound G P r k hsp htrace_free hsup_trace
+  calc
+    G.card ≤ (traceFamily G P).card * sunflowerThreshold (m - r) k :=
+      trace_recursion_bound G P r m k huni hsp hfree hsup_branch
+    _ ≤ sunflowerThreshold r k * sunflowerThreshold (m - r) k := by
+      exact Nat.mul_le_mul_right _ htrace_bound
 
 /-! ## Proposition 4.3: one-block universality -/
 

@@ -104,6 +104,14 @@ theorem pasted_quinary_local_tensor_support
     rw [hone]
     exact one_ne_zero
 
+/-- Over `ZMod 5`, a `5`-column is constant-or-injective exactly when its first two moments
+vanish. -/
+theorem localConstantOrInjective5_iff_sum_eq_zero_and_sq_sum_eq_zero :
+    ∀ a b c d e : V5,
+      localConstantOrInjective5 a b c d e ↔
+        a + b + c + d + e = 0 ∧ a ^ 2 + b ^ 2 + c ^ 2 + d ^ 2 + e ^ 2 = 0 := by
+  native_decide
+
 /-- Constant-or-injective local columns give sunflower tuples of singleton fibers. -/
 theorem singletonTuple_isSunflower_of_localConstantOrInjective5
     {a b c d e : V5} (h : localConstantOrInjective5 a b c d e) :

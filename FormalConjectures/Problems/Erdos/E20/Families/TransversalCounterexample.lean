@@ -196,6 +196,80 @@ noncomputable def sumSliceEquiv (n : ℕ) (b : G) (p : Fin (n + 1)) :
   rw [← Fintype.card_coe (sumSlice (G := G) (r := n + 1) b)]
   simpa using Fintype.card_congr (sumSliceEquiv (G := G) n b 0)
 
+/-- A sum-slice on an arbitrary finite index type is equivalent to the standard `Fin`-indexed
+sum-slice. -/
+noncomputable def sumSliceEquivType (ι : Type*) [DecidableEq ι] [Fintype ι] (b : G) :
+    ↥(Finset.univ.filter fun x : ι → G => ∑ i, x i = b) ≃
+      ↥(sumSlice (G := G) (r := Fintype.card ι) b) where
+  toFun x := by
+    let e : ι ≃ Fin (Fintype.card ι) := Fintype.equivFin ι
+    let reindex : (ι → G) ≃ (Fin (Fintype.card ι) → G) :=
+      Equiv.piCongrLeft (fun _ : Fin (Fintype.card ι) => G) e
+    refine ⟨reindex x.1, ?_⟩
+    have hx : ∑ i : ι, x.1 i = b := by
+      exact (Finset.mem_filter.mp x.2).2
+    have hsum :
+        ∑ i : Fin (Fintype.card ι), reindex x.1 i = ∑ i : ι, x.1 i := by
+      simpa [reindex, e] using
+        (Fintype.sum_equiv e (fun i : ι => x.1 i)
+          (fun i : Fin (Fintype.card ι) => reindex x.1 i) fun i => by
+            simp [reindex, e]).symm
+    refine Finset.mem_filter.mpr ?_
+    constructor
+    · simp
+    · rw [hsum, hx]
+  invFun x := by
+    let e : ι ≃ Fin (Fintype.card ι) := Fintype.equivFin ι
+    let reindex : (ι → G) ≃ (Fin (Fintype.card ι) → G) :=
+      Equiv.piCongrLeft (fun _ : Fin (Fintype.card ι) => G) e
+    refine ⟨reindex.symm x.1, ?_⟩
+    have hx : ∑ i : Fin (Fintype.card ι), x.1 i = b := by
+      exact (Finset.mem_filter.mp x.2).2
+    have hsum :
+        ∑ i : ι, reindex.symm x.1 i = ∑ i : Fin (Fintype.card ι), x.1 i := by
+      simpa [reindex, e] using
+        (Fintype.sum_equiv e.symm (fun i : Fin (Fintype.card ι) => x.1 i)
+          (fun i : ι => reindex.symm x.1 i) fun i => by
+            simp [reindex, e]).symm
+    refine Finset.mem_filter.mpr ?_
+    constructor
+    · simp
+    · rw [hsum, hx]
+  left_inv x := by
+    apply Subtype.ext
+    simp
+  right_inv x := by
+    apply Subtype.ext
+    simp
+
+/-- The cardinality of a total-sum slice on an arbitrary nonempty finite index type. -/
+@[simp] theorem card_sumSlice_fintype (ι : Type*) [DecidableEq ι] [Fintype ι]
+    (b : G) (hι : 0 < Fintype.card ι) :
+    (Finset.univ.filter fun x : ι → G => ∑ i, x i = b).card =
+      Fintype.card G ^ (Fintype.card ι - 1) := by
+  classical
+  let n : ℕ := Fintype.card ι - 1
+  have hcard : Fintype.card ι = n + 1 := by
+    subst n
+    omega
+  calc
+    (Finset.univ.filter fun x : ι → G => ∑ i, x i = b).card
+        = (sumSlice (G := G) (r := Fintype.card ι) b).card := by
+            rw [← Fintype.card_coe (Finset.univ.filter fun x : ι → G => ∑ i, x i = b),
+              ← Fintype.card_coe (sumSlice (G := G) (r := Fintype.card ι) b)]
+            exact Fintype.card_congr (sumSliceEquivType (G := G) ι b)
+    _ = Fintype.card G ^ n := by
+        rw [hcard]
+        simpa [n] using (card_sumSlice (G := G) n b)
+
+/-- The fiber of a sum-slice after fixing the coordinates in a finset `S`.
+
+This is the arbitrary-subset version of the prefix fiber: we pin every coordinate in `S` and
+leave the complementary coordinates free, subject to the total-sum constraint. -/
+def restrictionFiber {r : ℕ} (S : Finset (Fin r)) (b : G) (a : S → G) :
+    Finset (Fin r → G) :=
+  (sumSlice (G := G) (r := r) b).filter fun x => ∀ i : S, x i = a i
+
 /-- The fiber of a sum-slice after fixing an initial block of `s` coordinates.
 
 This is the prefix-specialized version of the higher-order marginal fibers discussed in the user's

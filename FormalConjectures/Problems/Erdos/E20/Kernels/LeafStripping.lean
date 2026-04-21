@@ -156,6 +156,70 @@ theorem pairwise_intersection_stripped_eq
     rcases Finset.mem_inter.mp hx with ⟨hx₁, hx₂⟩
     exact Finset.mem_inter.mpr ⟨(Finset.mem_inter.mp hx₁).1, (Finset.mem_inter.mp hx₂).1⟩
 
+/-- Every stripped edge is a subset of its parent edge. -/
+theorem strippedEdge_subset (H : Finset (Finset α)) (e : Finset α) :
+    strippedEdge H e ⊆ e := by
+  simp [strippedEdge]
+
+/-- Informal strict-parent lemma:
+if an edge `B` in a stripped family shrinks again in the next round, then it has a strict parent
+in the previous round.  More precisely, there is some `A ∈ H` with `∂A = B` and `B ⊂ A`. -/
+theorem strict_parent_of_shrinking_child
+    {H : Finset (Finset α)} {B : Finset α}
+    (hB : B ∈ strippedSupportFamily H)
+    (hshrink : strippedEdge (strippedSupportFamily H) B ≠ B) :
+    ∃ A ∈ H, strippedEdge H A = B ∧ B ⊂ A := by
+  classical
+  rcases mem_strippedSupportFamily_iff.mp hB with ⟨A₀, hA₀, hA₀strip⟩
+  have hBssub : strippedEdge (strippedSupportFamily H) B ⊂ B := by
+    refine Finset.ssubset_iff_subset_ne.mpr ?_
+    refine ⟨strippedEdge_subset _ _, hshrink⟩
+  rcases Finset.exists_of_ssubset hBssub with ⟨x, hxB, hxnot⟩
+  have hxAB : x ∈ strippedEdge H A₀ := by
+    simpa [hA₀strip] using hxB
+  have hxnonleafH : x ∈ nonLeafVertices H := (Finset.mem_inter.mp hxAB).2
+  have hxdegH2 : 2 ≤ ((H.filter fun e => x ∈ e)).card := by
+    simpa [vertexDegree'] using (by
+      simpa [nonLeafVertices] using hxnonleafH : 2 ≤ vertexDegree' H x)
+  have hxdegH : 1 < ((H.filter fun e => x ∈ e)).card := by omega
+  rcases Finset.exists_mem_notMem_of_card_lt_card
+      (s := ({A₀} : Finset (Finset α)))
+      (t := H.filter fun e => x ∈ e) (by simpa using hxdegH) with ⟨C, hC, hCne⟩
+  have hCmemH : C ∈ H := (Finset.mem_filter.mp hC).1
+  have hxC : x ∈ C := (Finset.mem_filter.mp hC).2
+  have hxnextle1 : ((strippedSupportFamily H).filter fun e => x ∈ e).card ≤ 1 := by
+    have hxnotleaf : x ∉ nonLeafVertices (strippedSupportFamily H) := by
+      intro hxleaf
+      exact hxnot (by simpa [strippedEdge, hxleaf] using hxB)
+    have hdeg : vertexDegree' (strippedSupportFamily H) x ≤ 1 := by
+      by_contra h
+      have h2 : 2 ≤ vertexDegree' (strippedSupportFamily H) x := by omega
+      exact hxnotleaf (by simpa [nonLeafVertices] using h2)
+    simpa [vertexDegree'] using hdeg
+  have hBmemnext : B ∈ (strippedSupportFamily H).filter fun e => x ∈ e := by
+    exact Finset.mem_filter.mpr ⟨hB, hxB⟩
+  have hCstrip_mem : strippedEdge H C ∈ (strippedSupportFamily H).filter fun e => x ∈ e := by
+    refine Finset.mem_filter.mpr ?_
+    constructor
+    · exact Finset.mem_image.mpr ⟨C, hCmemH, rfl⟩
+    · have hxnonleafH' : x ∈ nonLeafVertices H := hxnonleafH
+      simpa [strippedEdge] using ⟨hxC, hxnonleafH'⟩
+  have hCstrip_eq : strippedEdge H C = B := by
+    exact (Finset.card_le_one_iff.mp hxnextle1) hCstrip_mem hBmemnext
+  by_cases hABeq : A₀ = B
+  · refine ⟨C, hCmemH, hCstrip_eq, ?_⟩
+    have hsub : B ⊆ C := by
+      simpa [hCstrip_eq] using (strippedEdge_subset H C)
+    have hCB : C ≠ B := by
+      intro hEq
+      apply hCne
+      simp [hABeq, hEq]
+    exact Finset.ssubset_iff_subset_ne.mpr ⟨hsub, by intro hEq; exact hCB hEq.symm⟩
+  · refine ⟨A₀, hA₀, hA₀strip, ?_⟩
+    have hsub : B ⊆ A₀ := by
+      simpa [hA₀strip] using (strippedEdge_subset H A₀)
+    exact Finset.ssubset_iff_subset_ne.mpr ⟨hsub, by intro hEq; exact hABeq hEq.symm⟩
+
 /-- Informal §2, first consequence:
 if two distinct original edges have the same stripped image, then those two edges already form a
 sunflower with that common stripped image as kernel. -/

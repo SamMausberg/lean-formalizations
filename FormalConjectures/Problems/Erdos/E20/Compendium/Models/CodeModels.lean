@@ -9,6 +9,26 @@ set_option relaxedAutoImplicit false
 set_option autoImplicit false
 namespace FormalConjectures.Problems.Erdos.E20.Compendium
 
+def CodeModelFree (q k m : ℕ) (C : Finset (Fin m → Fin q)) : Prop :=
+  ∀ (f : Fin k → Fin m → Fin q),
+    Function.Injective f →
+    (∀ i, f i ∈ C) →
+    ∃ j : Fin m, ¬(∀ a b : Fin k, f a j = f b j) ∧
+                  ¬(Function.Injective (fun a => f a j))
+
+theorem codeModelNumber_bddAbove (q k m : ℕ) :
+    BddAbove {c : ℕ | ∃ (C : Finset (Fin m → Fin q)),
+      C.card = c ∧ CodeModelFree q k m C} := by
+  refine ⟨Fintype.card (Fin m → Fin q), ?_⟩
+  rintro c ⟨C, rfl, -⟩
+  exact Finset.card_le_univ C
+
+theorem card_le_codeModelNumber {q k m : ℕ} {C : Finset (Fin m → Fin q)}
+    (hfree : CodeModelFree q k m C) :
+    C.card ≤ codeModelNumber q k m := by
+  unfold codeModelNumber
+  exact le_csSup (codeModelNumber_bddAbove q k m) ⟨C, rfl, hfree⟩
+
 
 /-!
 # Section 10: Fixed-Alphabet Code Models

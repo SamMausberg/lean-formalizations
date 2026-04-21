@@ -592,11 +592,11 @@ theorem twoSubsetsContaining_eq_image (k : ℕ) (a : Fin k) :
   · intro s hs t ht hst
     have hsa : a ∉ s := by
       intro ha
-      have : a ∈ Finset.univ.erase a := (Finset.mem_powersetCard.mp hs).1 ha
+      have : a ∈ Finset.univ.erase a := (Finset.mem_powersetCard.mp (Finset.mem_coe.mp hs)).1 ha
       simpa using this
     have hta : a ∉ t := by
       intro ha
-      have : a ∈ Finset.univ.erase a := (Finset.mem_powersetCard.mp ht).1 ha
+      have : a ∈ Finset.univ.erase a := (Finset.mem_powersetCard.mp (Finset.mem_coe.mp ht)).1 ha
       simpa using this
     have := congrArg (fun u : Finset (Fin k) => u.erase a) hst
     simpa [hsa, hta] using this

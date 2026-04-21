@@ -1,4 +1,5 @@
 import FormalConjectures.Problems.Erdos.E20.Compendium.Recurrences.TraceRecursion
 import FormalConjectures.Problems.Erdos.E20.Compendium.Recurrences.HeavySet
 import FormalConjectures.Problems.Erdos.E20.Compendium.Recurrences.LPCovers
+import FormalConjectures.Problems.Erdos.E20.Compendium.Recurrences.CapturePressure
 import FormalConjectures.Problems.Erdos.E20.Compendium.Recurrences.RecursiveClosure

@@ -48,9 +48,11 @@ theorem one_step_recursion_over_solved_class
     grind;
   exact exact_trace_identity.symm ▸ le_trans ( Finset.sum_le_sum branch_bound ) ( by simp +decide [ sunflowerThreshold, mul_add ] ; nlinarith )
 
-/-- **Theorem 12.2, recursive closure bound.**
+/-
+**Theorem 12.2, recursive closure bound.**
 If every `n`-uniform `k`-sunflower-free family has size at most `B^n`,
-then `M(n,k) ≤ B^n`. This is the formal closure of the recursive argument. -/
+then `M(n,k) ≤ B^n`. This is the formal closure of the recursive argument.
+-/
 theorem recursive_closure_bound
     (B k : ℕ) (hk : 2 ≤ k)
     (h_base : ∀ (α : Type*) [DecidableEq α] [Fintype α]
@@ -58,5 +60,19 @@ theorem recursive_closure_bound
       IsUniform G m → SunflowerFree G k →
       G.card ≤ B ^ m) :
     ∀ n : ℕ, sunflowerNumber n k ≤ B ^ n := by
-  sorry
+  intro n
+  unfold sunflowerNumber
+  apply csSup_le' _;
+  rintro m ⟨ α, _, _, F, hF₁, hF₂, rfl ⟩;
+  convert h_base ( ULift α ) ( F.image ( fun s => s.image ULift.up ) ) n _ _;
+  · rw [ Finset.card_image_of_injective _ fun x y hxy => by simpa using Finset.image_injective ( fun x y hxy => by simpa using hxy ) hxy ];
+  · intro s hs;
+    rw [ Finset.mem_image ] at hs; obtain ⟨ t, ht, rfl ⟩ := hs; rw [ Finset.card_image_of_injective _ ULift.up_injective ] ; exact hF₁ t ht;
+  · rintro ⟨ petals, Y, hpetals₁, hpetals₂, hpetals₃ ⟩;
+    refine' hF₂ _;
+    use fun i => Finset.image ULift.down ( petals i ), Finset.image ULift.down Y;
+    simp_all +decide [ Finset.ext_iff, Function.Injective ];
+    refine' ⟨ fun i => _, hpetals₂ ⟩;
+    obtain ⟨ a, ha₁, ha₂ ⟩ := hpetals₁ i; convert ha₁; ext x; aesop;
+
 end FormalConjectures.Problems.Erdos.E20.Compendium

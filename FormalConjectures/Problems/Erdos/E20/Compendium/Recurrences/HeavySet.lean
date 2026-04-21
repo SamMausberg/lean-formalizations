@@ -17,7 +17,7 @@ This file formalizes the results from Section 5 of the sunflower compendium
 (sunflower_compendium.pdf): "The exact Γ_t/β_t formalism and the kernel-prefix criterion."
 -/
 
-variable {α : Type*} [DecidableEq α] [Fintype α]
+variable {α : Type} [DecidableEq α] [Fintype α]
 
 /-
 **Lemma 5.1 (Moment propagation), first identity.**
@@ -69,7 +69,9 @@ Combined with the heavy-set lemma, this gives `|F| ≤ g(n-t,k) / B_{n,k}(t)`.
 theorem recursive_upper_bound
     (F : Finset (Finset α)) (n k : ℕ) (t : ℕ)
     (hn : IsUniform F n) (hk : 2 ≤ k) (ht : t ≤ n)
-    (hfree : SunflowerFree F k) :
+    (hfree : SunflowerFree F k)
+    (hsup : BddAbove {m : ℕ | ∃ (β : Type) (_ : DecidableEq β) (_ : Fintype β)
+      (G : Finset (Finset β)), IsUniform G (n - t) ∧ SunflowerFree G k ∧ G.card = m}) :
     ∀ S ∈ (Finset.univ : Finset α).powersetCard t,
       familyDegree F S ≤ sunflowerNumber (n - t) k := by
   intro S hS
@@ -97,8 +99,8 @@ theorem recursive_upper_bound
   -- The link familyLink F S has card = familyDegree F S,
   -- is (n-t)-uniform and k-sunflower-free.
   -- So familyDegree F S = |familyLink F S| ≤ sunflowerNumber (n-t) k by definition.
-  rw [h_card] at *
-  sorry
+  unfold sunflowerNumber
+  exact le_csSup hsup ⟨α, inferInstance, inferInstance, familyLink F S, h_link, h_free, h_card⟩
 
 /-
 **Theorem 5.6 (Adaptive kernel-prefix criterion).**

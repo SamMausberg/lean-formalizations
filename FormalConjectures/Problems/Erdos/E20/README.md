@@ -17,6 +17,8 @@ This directory contains the organized Lean development for Erdős problem `E20`.
 - `Compendium/`
   Additional Aristotle-imported sunflower-compendium modules, split into
   `Core/`, `Recurrences/`, and `Models/`.
+- `SORRY_INVENTORY.md`
+  Current list of compendium declarations that still use `sorry`.
 
 ## Entry points
 
@@ -24,6 +26,11 @@ This directory contains the organized Lean development for Erdős problem `E20`.
 - `InformalMap.lean` restates the main pasted informal claims against the
   current formal library.
 - `Compendium.lean` imports the organized Aristotle compendium subtree.
+
+## Verification status
+
+`lake build FormalConjectures.Problems.Erdos.E20.Main` succeeds. Some imported
+compendium declarations still use `sorry`; see `SORRY_INVENTORY.md`.
 
 ## Attribution
 

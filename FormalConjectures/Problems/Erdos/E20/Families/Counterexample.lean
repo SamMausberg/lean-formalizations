@@ -97,7 +97,7 @@ lemma mem_completeGraphStar_iff {m : ℕ} {i : Fin m} {e : Finset (Fin m)} :
   constructor
   · intro he
     rcases Finset.mem_image.mp he with ⟨j, hj, rfl⟩
-    have hji : j ≠ i := (Finset.mem_erase.mp hj).1
+    have hji : j ≠ i := Finset.ne_of_mem_erase hj
     constructor
     · simpa [pairEdge, hji] using card_pairEdge (show i ≠ j from hji.symm)
     · simp [pairEdge]
@@ -120,7 +120,7 @@ lemma card_completeGraphStar {m : ℕ} (i : Fin m) :
   rw [Finset.card_image_of_injOn]
   · simp
   · intro j hj l hl hEq
-    have hji : j ≠ i := (Finset.mem_erase.mp hj).1
+    have hji : j ≠ i := Finset.ne_of_mem_erase (Finset.mem_coe.mp hj)
     have hjmem : j ∈ pairEdge i j := by simp [pairEdge]
     have : j ∈ pairEdge i l := by simpa [hEq] using hjmem
     simpa [pairEdge, hji, eq_comm] using this
@@ -277,10 +277,12 @@ theorem degreeSquareSum_completeGraphDualFamily {m : ℕ} (hm : 3 ≤ m) :
                   ((completeGraphStar m i) ∩ (completeGraphStar m i)).card +
                     (((Finset.univ : Finset (Fin m)).erase i).sum fun x =>
                       ((completeGraphStar m i) ∩ (completeGraphStar m x)).card) := by
-            simpa [Finset.sdiff_singleton_eq_erase] using
-              (Finset.sum_eq_add_sum_diff_singleton_of_mem
-                (s := (Finset.univ : Finset (Fin m))) (i := i) (h := by simp)
-                (f := fun j => ((completeGraphStar m i) ∩ (completeGraphStar m j)).card))
+            have h := (Finset.add_sum_erase
+                (Finset.univ : Finset (Fin m))
+                (fun j => ((completeGraphStar m i) ∩ (completeGraphStar m j)).card)
+                (Finset.mem_univ i)).symm
+            simp only [Finset.inter_self] at h ⊢
+            exact h
           have hsumErase :
               (((Finset.univ : Finset (Fin m)).erase i).sum fun x =>
                 if i = x then m - 1 else 1)
@@ -288,7 +290,7 @@ theorem degreeSquareSum_completeGraphDualFamily {m : ℕ} (hm : 3 ≤ m) :
                   (((Finset.univ : Finset (Fin m)).erase i).sum fun _ => 1) := by
             refine Finset.sum_congr rfl ?_
             intro x hx
-            have hxi : x ≠ i := (Finset.mem_erase.mp hx).1
+            have hxi : x ≠ i := Finset.ne_of_mem_erase hx
             simp [hxi.symm]
           simpa [Finset.sdiff_singleton_eq_erase, star_inter_card, card_completeGraphStar, hsumErase]
             using hsplit

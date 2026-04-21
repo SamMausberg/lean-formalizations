@@ -29,13 +29,33 @@ then `M(n, k) ≤ C^n`. -/
 theorem heavy_seeds_exponential
     (k : ℕ) (hk : 2 ≤ k)
     (C : ℕ) (hC : 1 ≤ C)
-    (h : ∀ (β : Type*) [DecidableEq β] [Fintype β]
+    (h : ∀ (β : Type) [DecidableEq β] [Fintype β]
       (F : Finset (Finset β)) (n : ℕ),
       1 ≤ n → IsUniform F n → SunflowerFree F k → F.Nonempty →
       ∃ (S : Finset β), S.Nonempty ∧
+        S.card ≤ n ∧
         F.card ≤ C ^ S.card * sunflowerNumber (n - S.card) k) :
     ∀ n, sunflowerNumber n k ≤ C ^ n := by
-  sorry
+  intro n
+  induction' n using Nat.strong_induction_on with n ih
+  unfold sunflowerNumber
+  apply csSup_le'
+  rintro m ⟨β, _, _, F, hFuni, hFfree, rfl⟩
+  by_cases hn : 1 ≤ n
+  · by_cases hFne : F.Nonempty
+    · obtain ⟨S, hSne, hSn, hbound⟩ := h β F n hn hFuni hFfree hFne
+      refine le_trans hbound ?_
+      calc
+        C ^ S.card * sunflowerNumber (n - S.card) k
+            ≤ C ^ S.card * C ^ (n - S.card) := by
+              exact Nat.mul_le_mul_left _ (ih _ (Nat.sub_lt hn (Finset.card_pos.mpr hSne)))
+        _ = C ^ (S.card + (n - S.card)) := by rw [← pow_add]
+        _ = C ^ n := by rw [Nat.add_sub_of_le hSn]
+    · simp [Finset.not_nonempty_iff_eq_empty.mp hFne]
+  · interval_cases n
+    simp only [pow_zero]
+    exact Finset.card_le_one.mpr fun x hx y hy => by
+      rw [Finset.card_eq_zero.mp (hFuni x hx), Finset.card_eq_zero.mp (hFuni y hy)]
 
 /-
 **Proposition 7.4 (Cheap covers force heavy blocks).**

@@ -1,0 +1,59 @@
+You are working inside a Lean project that contains the current formalization state for Erdos
+Problem E20, together with a TeX research compendium file:
+
+- `sunflower_compendium_research_notes_augmented_revised.tex`
+
+Task:
+Formalize every theorem/lemma/proposition/corollary statement from that TeX file that is not
+already completely formalized in the current `E20` development, but do not formalize statements
+that are false, overstated, gap-dependent, or currently unsupported by the exact Lean semantics.
+
+Hard requirements:
+- Treat the existing Lean files under `FormalConjectures/Problems/Erdos/E20/` as the source of
+  truth for what is already formalized.
+- Read `COMPENDIUM_STATEMENT_INVENTORY.tsv` as the checklist of theorem-like environments from
+  the TeX file.
+- Read `THEOREM_INVENTORY.txt` as the checklist of current Lean declarations.
+- Read `E20_SORRY_INVENTORY.txt`; if a listed `sorry` corresponds to a theorem-like claim from the
+  TeX file and you can prove it, replace the `sorry` with a proof.
+- For each theorem-like TeX statement:
+  1. If it is already fully formalized in Lean, leave the code alone and record the mapping.
+  2. If it is not formalized but is true and provable in the current project, add the Lean
+     formalization.
+  3. If it is false, too strong, exploratory, conditional on an unproved input, or does not
+     survive exact formal scrutiny, do not add it as a theorem. Instead record it in the report
+     with a brief reason.
+- Do not add `sorry`, `admit`, or new axioms.
+- Keep edits focused on the `E20` development and its import graph.
+- Update imports as needed so the project builds.
+- Run `lake build` before finishing.
+
+Truthfulness requirements:
+- The TeX document mixes rigorous statements with reductions, exploratory claims, and some routes
+  that the repo already treats as gap-marked or false. Be strict.
+- Do not formalize a theorem merely because it appears in theorem environment syntax.
+- If the exact TeX statement is too strong but a weaker exact statement is already present or can
+  be proved, formalize only the exact weaker statement and explain the mismatch in the report.
+- In particular, if a statement depends on continuation-cone semantics, solved-trace pressure,
+  finite-state capture, or other local machinery that is not fully formalized in the current repo,
+  do not pretend that it is done unless you actually formalize the missing machinery and prove it.
+
+Project-specific guidance:
+- Read `FormalConjectures/Problems/Erdos/E20/Main.lean`.
+- Read `FormalConjectures/Problems/Erdos/E20/InformalMap.lean`.
+- Prefer extending existing files/modules over inventing a disconnected parallel development.
+- If a theorem belongs naturally in the `Compendium` subtree, place it there; otherwise use the
+  existing `Foundations`, `Kernels`, `Recurrences`, `Families`, or `Tensors` modules.
+
+Required output artifacts:
+- Updated Lean files in the project bundle.
+- A report file `ARISTOTLE_COMPENDIUM_REPORT.md` that lists every item from
+  `COMPENDIUM_STATEMENT_INVENTORY.tsv` with one of these statuses:
+  - `already_formalized`
+  - `newly_formalized`
+  - `weaker_statement_formalized`
+  - `skipped_false_or_unsupported`
+- For each non-`already_formalized` item, include a short note and any relevant Lean theorem name.
+
+Build requirement:
+- The final bundle must pass `lake build`.

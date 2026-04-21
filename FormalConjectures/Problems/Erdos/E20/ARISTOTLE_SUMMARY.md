@@ -6,7 +6,7 @@ References below to `RequestProject/...` are the original archive paths.
 
 ## Completed Formalization
 
-I continued the formalization of the hypergraph decomposition theory document, significantly expanding the coverage from 5 files (~854 lines) to 9 files (~1374 lines). All theorems are fully proved with no `sorry` and depend only on standard axioms (`propext`, `Classical.choice`, `Quot.sound`).
+I continued the formalization of the hypergraph decomposition theory document, significantly expanding the coverage from 5 files (~854 lines) to 9 files (~1374 lines). This imported summary predates later compendium additions; the current E20 tree still has visible `sorry` placeholders listed in `SORRY_INVENTORY.md`.
 
 ### Key improvements over the previous state
 
@@ -114,4 +114,4 @@ Parts A, B, C of the decomposition theorem:
 
 ## Verification
 
-All theorems are fully proved with no `sorry`. The project builds cleanly and depends only on standard axioms (`propext`, `Classical.choice`, `Quot.sound`).
+The project builds cleanly. The current E20 tree is not globally sorry-free; see `SORRY_INVENTORY.md` for the remaining placeholders.

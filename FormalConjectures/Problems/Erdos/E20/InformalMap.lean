@@ -441,33 +441,6 @@ noncomputable abbrev pasted_transfer_matrix
     (A : EdgeShift (Q := Q) (E := E)) : Matrix Q Q ℝ :=
   A.transferMatrix
 
-/-- Informal declaration from the pasted finite-state note:
-the transfer root should equal the Perron root / spectral radius of the transfer matrix.
-
-This is formalized here as the precise proposition, not as a proved theorem. -/
-noncomputable abbrev pasted_transfer_root_equals_spectral_radius_statement
-    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
-    (A : EdgeShift (Q := Q) (E := E)) : Prop :=
-  A.TransferRootEqualsSpectralRadius
-
-/-- Informal declaration from the pasted finite-state note:
-the spectral radius should equal `exp h_top`.
-
-This is formalized here as the exact proposition parametrized by the candidate entropy `hTop`. -/
-noncomputable abbrev pasted_spectral_radius_equals_exp_topological_entropy_statement
-    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
-    (A : EdgeShift (Q := Q) (E := E)) (hTop : ℝ) : Prop :=
-  A.SpectralRadiusEqualsExpTopologicalEntropy hTop
-
-/-- Informal declaration from the pasted finite-state note:
-`transferRoot = ρ(T) = e^{h_top}`.
-
-This bundles the exact spectral statement as a formal proposition. -/
-noncomputable abbrev pasted_transfer_root_spectral_entropy_statement
-    {Q E : Type*} [Fintype Q] [DecidableEq Q] [Fintype E] [DecidableEq E]
-    (A : EdgeShift (Q := Q) (E := E)) (hTop : ℝ) : Prop :=
-  A.TransferRootSpectralEntropyStatement hTop
-
 /-- Informal declaration from the pasted finite-state / sliding-window note:
 every positive superharmonic weight produces a chain of prefixes whose normalized continuation
 counts never drop below the starting value. -/

@@ -3,6 +3,8 @@ import FormalConjectures.Problems.Erdos.E20.Recurrences.TupleStates
 import FormalConjectures.Problems.Erdos.E20.Recurrences.RecurrenceReduction
 import FormalConjectures.Problems.Erdos.E20.Recurrences.ProfitablePrefix
 import FormalConjectures.Problems.Erdos.E20.Recurrences.FiniteStatePrefixes
+import FormalConjectures.Problems.Erdos.E20.Recurrences.FiniteStateGap
+import FormalConjectures.Problems.Erdos.E20.Recurrences.OneCounterHolonomy
 import FormalConjectures.Problems.Erdos.E20.Recurrences.AutomatonBranches
 import FormalConjectures.Problems.Erdos.E20.Recurrences.HereditaryGrowth
 import FormalConjectures.Problems.Erdos.E20.Recurrences.FixedMemoryBound

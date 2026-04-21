@@ -2,3 +2,6 @@ import FormalConjectures.Problems.Erdos.E20.Kernels.LeafStripping
 import FormalConjectures.Problems.Erdos.E20.Kernels.KernelBounds
 import FormalConjectures.Problems.Erdos.E20.Kernels.TerminalKernelReduction
 import FormalConjectures.Problems.Erdos.E20.Kernels.TerminalLinks
+import FormalConjectures.Problems.Erdos.E20.Kernels.BridgeLock
+import FormalConjectures.Problems.Erdos.E20.Kernels.SeparatorLifting
+import FormalConjectures.Problems.Erdos.E20.Kernels.UniversalRouting

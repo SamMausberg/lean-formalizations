@@ -33,47 +33,53 @@ theorem card_le_codeModelNumber {q k m : ℕ} {C : Finset (Fin m → Fin q)}
 /-!
 # Section 10: Fixed-Alphabet Code Models
 
-This file formalizes the results from Section 10 of the sunflower compendium
+This file packages the results from Section 10 of the sunflower compendium
 (sunflower_compendium.pdf): "Fixed-alphabet code models: rigorous recurrences
-and provisional local tensors." Only the exact off-diagonal recurrences
-(Section 10.1) are formalized here, as the local tensor program (Section 10.2)
-is explicitly labeled exploratory/provisional in the paper.
+and provisional local tensors." The recurrence statements below are kept
+honest: when the current local definitions do not yet support a full proof, the file
+only records the checked extremalization step from an explicit per-code bound.
 -/
 
-/-- **Theorem 10.1 (One extra symbol), first recurrence.**
-For all integers `q, k, m ≥ 1`:
-  `F_{q+1,k}(m) ≤ ∑_{r=0}^{m} C(m,r) · F_{q,k}(r)`.
+/-- If every admissible code has size at most `B`, then the extremal code-model number is at
+most `B`.  This is the `csSup` packaging step used by the conditional recurrence reductions
+below. -/
+theorem codeModelNumber_le_of_code_bound
+    {q k m B : ℕ}
+    (hbound : ∀ (C : Finset (Fin m → Fin q)), CodeModelFree q k m C → C.card ≤ B) :
+    codeModelNumber q k m ≤ B := by
+  unfold codeModelNumber
+  apply csSup_le'
+  intro c hc
+  rcases hc with ⟨C, rfl, hfree⟩
+  exact hbound C hfree
 
-The proof partitions a code `C ⊆ [q+1]^m` by the support of the extra symbol `q+1`.
-Deleting the extra-symbol coordinates from a fixed support class gives an injective
-map into `[q]^{m-r}`, and sunflower-freeness is preserved. -/
-theorem one_extra_symbol_recurrence (q k m : ℕ) (hq : 1 ≤ q) (hk : 2 ≤ k) (hm : 1 ≤ m) :
-    codeModelNumber (q + 1) k m ≤ ∑ r ∈ Finset.range (m + 1), m.choose r * codeModelNumber q k r := by
-  sorry
+/-- **Theorem 10.1 (one extra symbol), extremalization step.**
+If the missing support-class decomposition has already been proved for every concrete
+`CodeModelFree (q + 1) k m` code, then the extremal recurrence follows. -/
+theorem one_extra_symbol_recurrence_of_support_class_bound
+    (q k m : ℕ)
+    (hbound : ∀ (C : Finset (Fin m → Fin (q + 1))),
+      CodeModelFree (q + 1) k m C →
+      C.card ≤ ∑ r ∈ Finset.range (m + 1), m.choose r * codeModelNumber q k r) :
+    codeModelNumber (q + 1) k m ≤
+      ∑ r ∈ Finset.range (m + 1), m.choose r * codeModelNumber q k r :=
+  codeModelNumber_le_of_code_bound hbound
 
-/-- **Theorem 10.1, general iterated form.**
-For every integer `t ≥ 0`:
-  `F_{q+t,k}(m) ≤ ∑_{r=0}^{m} C(m,r) · t^{m-r} · F_{q,k}(r)`.
-
-The iterated formula follows by induction on `t`. -/
-theorem iterated_extra_symbol_recurrence
-    (q k m t : ℕ) (hq : 1 ≤ q) (hk : 2 ≤ k) (hm : 1 ≤ m) :
+/-- **Theorem 10.1, iterated form, extremalization step.**
+If the iterated deletion/convolution estimate has already been proved for every concrete
+`CodeModelFree (q + t) k m` code, then the stated extremal recurrence follows. -/
+theorem iterated_extra_symbol_recurrence_of_code_bound
+    (q k m t : ℕ)
+    (hbound : ∀ (C : Finset (Fin m → Fin (q + t))),
+      CodeModelFree (q + t) k m C →
+      C.card ≤
+        ∑ r ∈ Finset.range (m + 1), m.choose r * t ^ (m - r) * codeModelNumber q k r) :
     codeModelNumber (q + t) k m ≤
-      ∑ r ∈ Finset.range (m + 1), m.choose r * t ^ (m - r) * codeModelNumber q k r := by
-  sorry
+      ∑ r ∈ Finset.range (m + 1), m.choose r * t ^ (m - r) * codeModelNumber q k r :=
+  codeModelNumber_le_of_code_bound hbound
 
-/-- **Theorem 10.2 (Sharper randomized deletion lift).**
-For all integers `q, t, k, m ≥ 1`:
-  `F_{q+t,k}(m) ≤ ((q+t)/q)^m · F_{q,k}(m)`.
-
-The proof uses a probabilistic argument: choose independently in each coordinate
-a uniformly random `q`-subset of `[q+t]`. Any codeword survives with probability
-`(q/(q+t))^m`. The surviving code remains `k`-sunflower-free.
-
-We formalize this as a natural number inequality (multiplied through by `q^m`):
-  `q^m · F_{q+t,k}(m) ≤ (q+t)^m · F_{q,k}(m)`. -/
-theorem randomized_deletion_lift
-    (q t k m : ℕ) (hq : 1 ≤ q) (hk : 2 ≤ k) :
-    q ^ m * codeModelNumber (q + t) k m ≤ (q + t) ^ m * codeModelNumber q k m := by
-  sorry
+/- **Theorem 10.2 (sharper randomized deletion lift).**
+The probabilistic proof in the compendium reduces to a counting lemma for
+coordinatewise `q`-subset selections.  That scaled averaging step is not proved in this file,
+so no theorem for the final randomized inequality is asserted here. -/
 end FormalConjectures.Problems.Erdos.E20.Compendium

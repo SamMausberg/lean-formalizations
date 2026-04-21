@@ -88,6 +88,22 @@ theorem explicitLocalTensor5_eq_zero_iff_not_constantOrInjective
   · simp [h, one_ne_zero]
   · simp [h]
 
+/-- Restatement of the pasted `(5,5)` local-support claim: the explicit tensor is supported
+exactly on constant-or-injective columns. -/
+theorem pasted_quinary_local_tensor_support
+    (a b c d e : V5) :
+    explicitLocalTensor5 a b c d e ≠ 0 ↔ localConstantOrInjective5 a b c d e := by
+  constructor
+  · intro hne
+    by_contra hlocal
+    exact hne ((explicitLocalTensor5_eq_zero_iff_not_constantOrInjective a b c d e).2 hlocal)
+  · intro hlocal
+    have hone :
+        explicitLocalTensor5 a b c d e = 1 :=
+      (explicitLocalTensor5_eq_one_iff_constantOrInjective a b c d e).2 hlocal
+    rw [hone]
+    exact one_ne_zero
+
 /-- Constant-or-injective local columns give sunflower tuples of singleton fibers. -/
 theorem singletonTuple_isSunflower_of_localConstantOrInjective5
     {a b c d e : V5} (h : localConstantOrInjective5 a b c d e) :
@@ -286,6 +302,15 @@ theorem explicitGlobalTensor5Tuple_eq_ite_allEqual_of_sunflowerFree
         injective_of_columnwiseConstantOrInjective5_of_not_allEqual hcol hall
       exact hne (explicitGlobalTensor5Tuple_eq_zero_of_sunflowerFree hfree hxC hxinj)
     simp [hall, hzero]
+
+/-- Restatement of the pasted global diagonalization claim: on a `5`-sunflower-free transversal
+code, the global tensor survives exactly on all-equal `5`-tuples from the code. -/
+theorem pasted_quinary_global_tensor_diagonalization
+    {n : ℕ} {C : Finset (QuinaryWord n)}
+    (hfree : SunflowerFree (transversalFamily (G := V5) C) 5)
+    {x : Fin 5 → QuinaryWord n} (hxC : ∀ t, x t ∈ C) :
+    explicitGlobalTensor5Tuple x = if ∀ t : Fin 5, x t = x 0 then 1 else 0 :=
+  explicitGlobalTensor5Tuple_eq_ite_allEqual_of_sunflowerFree hfree hxC
 
 end GlobalTensor
 

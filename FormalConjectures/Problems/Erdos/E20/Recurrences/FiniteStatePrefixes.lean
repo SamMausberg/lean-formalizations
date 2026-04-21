@@ -65,21 +65,6 @@ noncomputable def transferRoot (A : EdgeShift (Q := Q) (E := E)) : ℝ :=
 noncomputable def transferMatrix (A : EdgeShift (Q := Q) (E := E)) : Matrix Q Q ℝ :=
   fun p q => Fintype.card {e : E // A.src e = p ∧ A.dst e = q}
 
-/-- The exact spectral statement suggested by the finite-state/sliding-window model. -/
-noncomputable def TransferRootEqualsSpectralRadius
-    (A : EdgeShift (Q := Q) (E := E)) : Prop :=
-  ENNReal.ofReal A.transferRoot = spectralRadius ℝ A.transferMatrix
-
-/-- A formal way to package the entropy normalization `ρ(T) = e^{h_top}`. -/
-noncomputable def SpectralRadiusEqualsExpTopologicalEntropy
-    (A : EdgeShift (Q := Q) (E := E)) (hTop : ℝ) : Prop :=
-  spectralRadius ℝ A.transferMatrix = ENNReal.ofReal (Real.exp hTop)
-
-/-- Full finite-state spectral package: transfer root, Perron root, and topological entropy. -/
-noncomputable def TransferRootSpectralEntropyStatement
-    (A : EdgeShift (Q := Q) (E := E)) (hTop : ℝ) : Prop :=
-  A.TransferRootEqualsSpectralRadius ∧ A.SpectralRadiusEqualsExpTopologicalEntropy hTop
-
 /-- The normalized continuation count `Φ_m(q) = N_m(q) / (Λ^m h(q))`. -/
 noncomputable def phi (A : EdgeShift (Q := Q) (E := E)) (h : Q → ℝ) (Λ : ℝ) (m : ℕ) (q : Q) : ℝ :=
   (A.continuationCount m q : ℝ) / (Λ ^ m * h q)

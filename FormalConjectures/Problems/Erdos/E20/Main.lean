@@ -1,3 +1,4 @@
+import FormalConjectures.Problems.Erdos.E20.Conjecture
 import FormalConjectures.Problems.Erdos.E20.Foundations
 import FormalConjectures.Problems.Erdos.E20.Families
 import FormalConjectures.Problems.Erdos.E20.Kernels

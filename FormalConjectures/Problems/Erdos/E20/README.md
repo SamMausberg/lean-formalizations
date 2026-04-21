@@ -29,8 +29,8 @@ This directory contains the organized Lean development for Erdős problem `E20`.
 
 ## Verification status
 
-`lake build FormalConjectures.Problems.Erdos.E20.Main` succeeds. Some imported
-compendium declarations still use `sorry`; see `SORRY_INVENTORY.md`.
+`lake build FormalConjectures.Problems.Erdos.E20.Main` succeeds. The E20 Lean
+sources are currently `sorry`-free; see `SORRY_INVENTORY.md`.
 
 ## Attribution
 

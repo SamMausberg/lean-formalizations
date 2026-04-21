@@ -1,6 +1,10 @@
 import FormalConjectures.Problems.Erdos.E20.Kernels.SeparatorLifting
 import FormalConjectures.Problems.Erdos.E20.Recurrences.RecurrenceReduction
 
+set_option linter.unusedSectionVars false
+set_option linter.unusedDecidableInType false
+set_option linter.unusedFintypeInType false
+
 namespace FormalConjectures.Problems.Erdos.E20
 
 /-!
@@ -56,5 +60,75 @@ theorem profitablePrefixFramework_implies_exponentialBound
     ∀ r, M r ≤ C ^ r := by
   simpa using
     (exponential_bound_of_hasProfitableDropRecurrence M A Λ C T hA hΛ hC hnonneg hbase hprof)
+
+section CompatibilityToRigidity
+
+variable {State ι Choice : Type*}
+  [DecidableEq ι] [Fintype ι] [Fintype State] [Fintype Choice]
+
+/-- A finite distinguisher skeleton.
+
+The `ι`-indexed local choice data separates all distinct states.  In the intended application,
+`ι` is the quasi-laminar family of minimal distinguishers. -/
+structure DistinguisherSkeleton where
+  localChoice : ι → State → Choice
+  separates : ∀ {x y : State}, x ≠ y → ∃ i : ι, localChoice i x ≠ localChoice i y
+
+namespace DistinguisherSkeleton
+
+variable (S : DistinguisherSkeleton (State := State) (ι := ι) (Choice := Choice))
+
+/-- The local choice code is injective. -/
+theorem code_injective :
+    Function.Injective (fun x : State => fun i : ι => S.localChoice i x) := by
+  cases S with
+  | mk localChoice separates =>
+      intro x y hxy
+      by_contra hne
+      rcases separates hne with ⟨i, hi⟩
+      exact hi (congrArg (fun f : ι → Choice => f i) hxy)
+
+/-- A finite distinguisher skeleton codes the state space into a finite product of local choice
+sets. -/
+theorem card_state_le_code_space :
+    (S : DistinguisherSkeleton (State := State) (ι := ι) (Choice := Choice)) →
+      Fintype.card State ≤ Fintype.card Choice ^ Fintype.card ι := by
+  intro S
+  classical
+  cases S with
+  | mk localChoice separates =>
+      have hcard := Fintype.card_le_of_injective
+        (fun x : State => fun i : ι => localChoice i x)
+        (by
+          intro x y hxy
+          by_contra hne
+          rcases separates hne with ⟨i, hi⟩
+          exact hi (congrArg (fun f : ι → Choice => f i) hxy))
+      have hfun : Fintype.card (ι → Choice) = Fintype.card Choice ^ Fintype.card ι := by
+        exact (Fintype.card_fun (α := ι) (β := Choice))
+      simpa [hfun] using hcard
+
+/-- Compatibility-to-rigidity via a linear-size distinguisher skeleton.
+
+This is the abstract Myhill--Nerode counting step from the pasted compatibility note: once the
+minimal distinguishers form a finite skeleton of linear size, the state space is at most
+exponential in that linear bound. -/
+theorem card_state_le_pow_of_linear_skeleton
+    (S : DistinguisherSkeleton (State := State) (ι := ι) (Choice := Choice))
+    {B C m : ℕ}
+    (hChoice : Fintype.card Choice ≤ B) (hSkeleton : Fintype.card ι ≤ C * m)
+    (hB : 1 ≤ B) :
+    Fintype.card State ≤ B ^ (C * m) := by
+  calc
+    Fintype.card State ≤ Fintype.card Choice ^ Fintype.card ι :=
+      card_state_le_code_space S
+    _ ≤ B ^ Fintype.card ι := by
+      exact Nat.pow_le_pow_left hChoice _
+    _ ≤ B ^ (C * m) := by
+      exact Nat.pow_le_pow_right hB hSkeleton
+
+end DistinguisherSkeleton
+
+end CompatibilityToRigidity
 
 end FormalConjectures.Problems.Erdos.E20

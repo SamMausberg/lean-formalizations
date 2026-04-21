@@ -122,4 +122,48 @@ end DriftQuiver
 
 end Core
 
+section OAExactification
+
+variable {Prefix Phase Window Cont : Type*}
+
+/-- Explicit finite-window OA exactification data.
+
+The point of this package is to keep the finite-window bottleneck honest: the only things assumed
+are the phase, the finite window state, the integer counter, and the affine continuation-value
+formula.  Any further exactification or cocycle lifting has to be supplied through these fields. -/
+structure OAFiniteWindowExactification (Prefix Phase Window Cont : Type*) where
+  phase : Prefix → Phase
+  window : Prefix → Window
+  counter : Prefix → ℤ
+  feasible : Prefix → Cont → Prop
+  value : Prefix → Cont → ℝ
+  baseValue : Phase → Cont → ℝ
+  slope : Phase → ℝ
+  feasible_of_same_interface :
+    ∀ {x y}, phase x = phase y → window x = window y → ∀ γ, feasible x γ ↔ feasible y γ
+  affine_value :
+    ∀ {x γ}, feasible x γ →
+      value x γ = baseValue (phase x) γ + slope (phase x) * (counter x : ℝ)
+
+namespace OAFiniteWindowExactification
+
+variable (E : OAFiniteWindowExactification Prefix Phase Window Cont)
+
+/-- Equal phase, equal window, and equal counter give identical feasible continuations and
+Bellman values. -/
+theorem exact_of_equal_interface {x y : Prefix}
+    (hphase : E.phase x = E.phase y) (hwindow : E.window x = E.window y)
+    (hcounter : E.counter x = E.counter y) :
+    (∀ γ, E.feasible x γ ↔ E.feasible y γ) ∧
+      ∀ γ, E.feasible x γ → E.value x γ = E.value y γ := by
+  constructor
+  · exact E.feasible_of_same_interface hphase hwindow
+  · intro γ hγ
+    have hy : E.feasible y γ := (E.feasible_of_same_interface hphase hwindow γ).1 hγ
+    rw [E.affine_value hγ, E.affine_value hy, hphase, hcounter]
+
+end OAFiniteWindowExactification
+
+end OAExactification
+
 end FormalConjectures.Problems.Erdos.E20

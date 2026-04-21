@@ -6,6 +6,7 @@ import FormalConjectures.Problems.Erdos.E20.Foundations.BetaChain
 import FormalConjectures.Problems.Erdos.E20.Foundations.Branching
 import FormalConjectures.Problems.Erdos.E20.Foundations.CoverCriteria
 import FormalConjectures.Problems.Erdos.E20.Foundations.TerminalPruning
+import FormalConjectures.Problems.Erdos.E20.Foundations.SolvedTraceDeficitLocalization
 import FormalConjectures.Problems.Erdos.E20.Foundations.Obstructions
 import FormalConjectures.Problems.Erdos.E20.Foundations.Examples
 import FormalConjectures.Problems.Erdos.E20.Foundations.GapAnalysis

@@ -112,7 +112,7 @@ theorem deltaF2_eq_iff (u v : V) :
   rcases u with ⟨u₀, u₁⟩
   rcases v with ⟨v₀, v₁⟩
   fin_cases u₀ <;> fin_cases u₁ <;> fin_cases v₀ <;> fin_cases v₁ <;>
-    native_decide
+    decide
 
 set_option linter.style.nativeDecide false in
 theorem omegaF2_eq_one_iff (u v : V) :
@@ -120,7 +120,7 @@ theorem omegaF2_eq_one_iff (u v : V) :
   rcases u with ⟨u₀, u₁⟩
   rcases v with ⟨v₀, v₁⟩
   fin_cases u₀ <;> fin_cases u₁ <;> fin_cases v₀ <;> fin_cases v₁ <;>
-    native_decide
+    decide
 
 set_option linter.style.nativeDecide false in
 theorem explicitLocalTensor_eq_indicatorF2 (a b c d : V) :

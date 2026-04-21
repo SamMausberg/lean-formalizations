@@ -1,4 +1,7 @@
 import FormalConjectures.Problems.Erdos.E20.Families.Counterexample
 import FormalConjectures.Problems.Erdos.E20.Families.TransversalCounterexample
+import FormalConjectures.Problems.Erdos.E20.Families.BalancedMultislice
+import FormalConjectures.Problems.Erdos.E20.Families.BalancedMultisliceCounting
+import FormalConjectures.Problems.Erdos.E20.Families.BalancedMultisliceDensity
 import FormalConjectures.Problems.Erdos.E20.Families.ExplicitKernels
 import FormalConjectures.Problems.Erdos.E20.Families.BranchBridgeCounterexample

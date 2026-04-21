@@ -10,14 +10,14 @@ open scoped BigOperators
 This file packages the honest part of the user's terminal-kernel note in a form that matches the
 current E20 library.
 
-The key point is that the current development formalizes one-round leaf stripping via
-`strippedSupportFamily`, together with explicit terminal examples such as block products and
-transversal kernels. What is *not* yet formalized here is the global theorem that every
-`k`-sunflower-free `n`-uniform family loses at most a factor `(k - 1)^n` when reduced to its exact
-terminal kernel.
+The current development formalizes one-round leaf stripping via `strippedSupportFamily`, together
+with explicit terminal examples such as block products and transversal kernels.  The iterated
+stripping API in `LeafStripping.lean` now gives the family-level theorem that every
+`k`-sunflower-free `n`-uniform family loses at most a factor `(k - 1)^n` when reduced to the
+terminal stage `iteratedStripping H n`.
 
-Accordingly, this file isolates that reduction as an explicit hypothesis
-`HasTerminalKernelReductionAt k n H` and proves the consequences that really do follow from it:
+This file keeps the older one-round-shaped hypothesis `HasTerminalKernelReductionAt k n H` for
+downstream exact-kernel examples, and also records the unconditional iterated-kernel reduction:
 
 * an abstract reduction lemma for any class of terminal kernels carrying an `A^m` size bound;
 * concrete corollaries for terminal transversal kernels and terminal block products.
@@ -25,10 +25,78 @@ Accordingly, this file isolates that reduction as an explicit hypothesis
 
 variable {α : Type*} [DecidableEq α] [Fintype α]
 
+/-- The proven iterated terminal-kernel reduction for an `n`-uniform family uses the terminal
+stage `iteratedStripping H n`. -/
+def HasIteratedTerminalKernelReductionAt (k n : ℕ) (H : Finset (Finset α)) : Prop :=
+  (H.card : ℝ) ≤ ((k - 1 : ℝ) ^ n) * (iteratedStripping H n).card
+
+/-- The terminal stage produced from an `n`-uniform family is terminal and has rank at most `n`. -/
+theorem iteratedTerminalKernel_terminal_and_rank_le
+    {H : Finset (Finset α)} {n : ℕ} (hH : IsRUniform H n) :
+    IsTerminalFamily (iteratedStripping H n) ∧
+      ∀ e ∈ iteratedStripping H n, e.card ≤ n := by
+  exact ⟨terminal_iteratedStripping_of_uniform H hH,
+    fun e he => iteratedStripping_edge_card_le_uniformity hH he⟩
+
+/-- Exact family-level terminal-kernel reduction:
+an `n`-uniform `k`-sunflower-free family has size at most `(k - 1)^n` times its terminal kernel. -/
+theorem hasIteratedTerminalKernelReductionAt_of_uniform_sunflowerFree
+    {H : Finset (Finset α)} {n k : ℕ}
+    (hk : 1 ≤ k) (hH : IsRUniform H n) (hfree : SunflowerFree H k) :
+    HasIteratedTerminalKernelReductionAt k n H := by
+  have _hterminal_and_rank :=
+    iteratedTerminalKernel_terminal_and_rank_le (H := H) (n := n) hH
+  unfold HasIteratedTerminalKernelReductionAt
+  have hnat :
+      H.card ≤ (k - 1) ^ n * (iteratedStripping H n).card :=
+    card_le_pow_mul_card_iteratedStripping_of_sunflowerFree hfree n
+  have hcast : ((k - 1 : ℕ) : ℝ) = (k - 1 : ℝ) := by
+    rw [Nat.cast_sub hk]
+    norm_num
+  have hreal :
+      (H.card : ℝ) ≤ (((k - 1 : ℕ) : ℝ) ^ n) *
+          ((iteratedStripping H n).card : ℝ) := by
+    exact_mod_cast hnat
+  simpa [hcast] using hreal
+
+/-- If the terminal kernel itself is bounded by `B`, the original family is bounded by
+`(k - 1)^n B`. -/
+theorem terminalKernelReduction_card_bound_of_iteratedKernel
+    {H : Finset (Finset α)} {n k : ℕ} {B : ℝ}
+    (hk : 1 ≤ k) (hH : IsRUniform H n) (hfree : SunflowerFree H k)
+    (hKbound : ((iteratedStripping H n).card : ℝ) ≤ B) :
+    (H.card : ℝ) ≤ ((k - 1 : ℝ) ^ n) * B := by
+  have hred := hasIteratedTerminalKernelReductionAt_of_uniform_sunflowerFree
+    (H := H) (n := n) (k := k) hk hH hfree
+  unfold HasIteratedTerminalKernelReductionAt at hred
+  have hk_real : (1 : ℝ) ≤ k := by exact_mod_cast hk
+  have hbase_nonneg : 0 ≤ (k - 1 : ℝ) := sub_nonneg.mpr hk_real
+  exact le_trans hred
+    (mul_le_mul_of_nonneg_left hKbound (pow_nonneg hbase_nonneg n))
+
+/-- Exponential form of the exact iterated terminal-kernel reduction. -/
+theorem terminalKernelReduction_bound_of_iteratedKernel
+    {H : Finset (Finset α)} {n m k : ℕ} {A : ℝ}
+    (hk : 1 ≤ k) (hH : IsRUniform H n) (hfree : SunflowerFree H k)
+    (hmn : m ≤ n) (hA : 1 ≤ A)
+    (hKbound : ((iteratedStripping H n).card : ℝ) ≤ A ^ m) :
+    (H.card : ℝ) ≤ (((k - 1 : ℝ) * A) ^ n) := by
+  have hKbound' : ((iteratedStripping H n).card : ℝ) ≤ A ^ n := by
+    calc
+      ((iteratedStripping H n).card : ℝ) ≤ A ^ m := hKbound
+      _ ≤ A ^ n := pow_le_pow_right₀ hA hmn
+  have hred :
+      (H.card : ℝ) ≤ ((k - 1 : ℝ) ^ n) * A ^ n :=
+    terminalKernelReduction_card_bound_of_iteratedKernel
+      (H := H) (n := n) (k := k) (B := A ^ n) hk hH hfree hKbound'
+  calc
+    (H.card : ℝ) ≤ ((k - 1 : ℝ) ^ n) * A ^ n := hred
+    _ = (((k - 1 : ℝ) * A) ^ n) := by rw [← mul_pow]
+
 /-- The explicit reduction hypothesis used in the terminal-kernel note:
 the original family is at most `(k - 1)^n` times as large as its one-round stripped terminal
-kernel.  Since iterated terminal reduction is not yet formalized in the library, we package that
-factor as an assumption. -/
+kernel.  This remains useful for examples where the first stripped support is already identified
+with a concrete terminal model. -/
 def HasTerminalKernelReductionAt (k n : ℕ) (H : Finset (Finset α)) : Prop :=
   (H.card : ℝ) ≤ ((k - 1 : ℝ) ^ n) * (strippedSupportFamily H).card
 

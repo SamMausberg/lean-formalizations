@@ -25,6 +25,15 @@ of the stripped-image multiset.  Formally we encode that support as a `Finset`. 
 def strippedSupportFamily (H : Finset (Finset α)) : Finset (Finset α) :=
   H.image (strippedEdge H)
 
+/-- The iterated leaf-stripping sequence `F_t`. -/
+def iteratedStripping (H : Finset (Finset α)) : ℕ → Finset (Finset α)
+  | 0 => H
+  | t + 1 => strippedSupportFamily (iteratedStripping H t)
+
+/-- A family is terminal for leaf stripping when one more stripping round changes nothing. -/
+def IsTerminalFamily (H : Finset (Finset α)) : Prop :=
+  strippedSupportFamily H = H
+
 /-- Informal leaf-stripping preamble:
 `m_K` is the multiplicity of `K` in the stripped-image multiset
 `!{ r(E) : E ∈ 𝓕 }!`.  Formally we record that multiplicity by counting the corresponding
@@ -80,6 +89,37 @@ theorem mem_strippedSupportFamily_iff {H : Finset (Finset α)} {A : Finset α} :
     exact ⟨e, he, rfl⟩
   · rintro ⟨e, he, rfl⟩
     exact Finset.mem_image.mpr ⟨e, he, rfl⟩
+
+@[simp] theorem iteratedStripping_zero (H : Finset (Finset α)) :
+    iteratedStripping H 0 = H := rfl
+
+@[simp] theorem iteratedStripping_succ (H : Finset (Finset α)) (t : ℕ) :
+    iteratedStripping H (t + 1) = strippedSupportFamily (iteratedStripping H t) := rfl
+
+/-- If every edge survives one stripping round unchanged, then the family is terminal. -/
+theorem strippedSupportFamily_eq_self_of_forall_strippedEdge_eq
+    {H : Finset (Finset α)}
+    (h : ∀ e ∈ H, strippedEdge H e = e) :
+    strippedSupportFamily H = H := by
+  ext A
+  constructor
+  · intro hA
+    rcases mem_strippedSupportFamily_iff.mp hA with ⟨e, he, hstrip⟩
+    simpa [← hstrip, h e he] using he
+  · intro hA
+    exact Finset.mem_image.mpr ⟨A, hA, h A hA⟩
+
+/-- A non-fixed stripping round contains an edge that actually shrinks. -/
+theorem exists_shrinking_edge_of_strippedSupportFamily_ne_self
+    {H : Finset (Finset α)} (h : strippedSupportFamily H ≠ H) :
+    ∃ e ∈ H, strippedEdge H e ≠ e := by
+  classical
+  by_contra hnone
+  apply h
+  exact strippedSupportFamily_eq_self_of_forall_strippedEdge_eq (by
+    intro e he
+    by_contra hshrink
+    exact hnone ⟨e, he, hshrink⟩)
 
 /-- Informal §1:
 for every subfamily `𝓐`, membership in `⋂_{E ∈ 𝓐} E` means belonging to every edge of `𝓐`. -/
@@ -220,6 +260,101 @@ theorem strict_parent_of_shrinking_child
       simpa [hA₀strip] using (strippedEdge_subset H A₀)
     exact Finset.ssubset_iff_subset_ne.mpr ⟨hsub, by intro hEq; exact hABeq hEq.symm⟩
 
+/-- Along an iterated stripping sequence from an `n`-uniform family, any edge that still shrinks
+at time `t` leaves room for `t + 1` strict size drops from an original `n`-edge. -/
+theorem iteratedStripping_shrinking_card_add_le_uniformity
+    {H : Finset (Finset α)} {n t : ℕ} (hH : IsRUniform H n) {B : Finset α}
+    (hB : B ∈ iteratedStripping H t)
+    (hshrink : strippedEdge (iteratedStripping H t) B ≠ B) :
+    t + 1 + (strippedEdge (iteratedStripping H t) B).card ≤ n := by
+  induction t generalizing B with
+  | zero =>
+      have hssub : strippedEdge H B ⊂ B := by
+        exact Finset.ssubset_iff_subset_ne.mpr ⟨strippedEdge_subset H B, hshrink⟩
+      have hlt : (strippedEdge H B).card < B.card := Finset.card_lt_card hssub
+      have hBcard : B.card = n := hH B hB
+      have hlt' : (strippedEdge (iteratedStripping H 0) B).card < n := by
+        simpa [iteratedStripping_zero, hBcard] using hlt
+      omega
+  | succ t ih =>
+      have hB' : B ∈ strippedSupportFamily (iteratedStripping H t) := by
+        simpa using hB
+      rcases strict_parent_of_shrinking_child
+          (H := iteratedStripping H t) (B := B) hB' hshrink with
+        ⟨A, hA, hAstrip, hBA⟩
+      have hAshrink : strippedEdge (iteratedStripping H t) A ≠ A := by
+        intro hEq
+        have hBAeq : B = A := by
+          rw [← hAstrip, hEq]
+        exact (Finset.ssubset_iff_subset_ne.mp hBA).2 hBAeq
+      have hih := ih hA hAshrink
+      rw [hAstrip] at hih
+      have hchild_ssub :
+          strippedEdge (iteratedStripping H (t + 1)) B ⊂ B := by
+        exact Finset.ssubset_iff_subset_ne.mpr
+          ⟨strippedEdge_subset (iteratedStripping H (t + 1)) B, hshrink⟩
+      have hchild_lt :
+          (strippedEdge (iteratedStripping H (t + 1)) B).card < B.card :=
+        Finset.card_lt_card hchild_ssub
+      omega
+
+/-- The stripping process for an `n`-uniform family is fixed after at most `n` rounds. -/
+theorem iteratedStripping_fixed_after_uniformity
+    (H : Finset (Finset α)) {n : ℕ} (hH : IsRUniform H n) :
+    iteratedStripping H (n + 1) = iteratedStripping H n := by
+  classical
+  by_contra hne
+  have hround :
+      strippedSupportFamily (iteratedStripping H n) ≠ iteratedStripping H n := by
+    simpa using hne
+  rcases exists_shrinking_edge_of_strippedSupportFamily_ne_self hround with
+    ⟨B, hB, hshrink⟩
+  have hle :=
+    iteratedStripping_shrinking_card_add_le_uniformity (H := H) (n := n) (t := n)
+      hH hB hshrink
+  omega
+
+/-- The `n`th stripping stage of an `n`-uniform family is terminal. -/
+theorem terminal_iteratedStripping_of_uniform
+    (H : Finset (Finset α)) {n : ℕ} (hH : IsRUniform H n) :
+    IsTerminalFamily (iteratedStripping H n) := by
+  unfold IsTerminalFamily
+  simpa using iteratedStripping_fixed_after_uniformity H hH
+
+/-- Once a stripping sequence has reached a fixed point, all later stages are equal. -/
+theorem iteratedStripping_stable_after_fixed
+    {H : Finset (Finset α)} {t : ℕ}
+    (hfix : iteratedStripping H (t + 1) = iteratedStripping H t) :
+    ∀ r : ℕ, iteratedStripping H (t + r) = iteratedStripping H t := by
+  intro r
+  induction r with
+  | zero => simp
+  | succ r ih =>
+      rw [Nat.add_succ, iteratedStripping_succ, ih]
+      simpa using hfix
+
+/-- After round `n`, an `n`-uniform family's stripping sequence remains stable forever. -/
+theorem iteratedStripping_stable_after_uniformity
+    (H : Finset (Finset α)) {n : ℕ} (hH : IsRUniform H n) :
+    ∀ r : ℕ, iteratedStripping H (n + r) = iteratedStripping H n :=
+  iteratedStripping_stable_after_fixed (iteratedStripping_fixed_after_uniformity H hH)
+
+/-- Stripping never increases edge sizes, so every iterated kernel of an `n`-uniform family has
+rank at most `n`. -/
+theorem iteratedStripping_edge_card_le_uniformity
+    {H : Finset (Finset α)} {n t : ℕ} (hH : IsRUniform H n)
+    {B : Finset α} (hB : B ∈ iteratedStripping H t) :
+    B.card ≤ n := by
+  induction t generalizing B with
+  | zero =>
+      exact le_of_eq (hH B hB)
+  | succ t ih =>
+      rcases mem_strippedSupportFamily_iff.mp (by simpa using hB) with ⟨A, hA, hstrip⟩
+      calc
+        B.card = (strippedEdge (iteratedStripping H t) A).card := by rw [hstrip]
+        _ ≤ A.card := Finset.card_le_card (strippedEdge_subset _ _)
+        _ ≤ n := ih hA
+
 /-- Informal §2, first consequence:
 if two distinct original edges have the same stripped image, then those two edges already form a
 sunflower with that common stripped image as kernel. -/
@@ -327,7 +462,7 @@ theorem exists_lift_of_strippedSunflower
       rcases Finset.mem_image.mp heU with ⟨B, hB, rfl⟩
       have hAB : A = B.1 := by
         simpa [hrep_strip B] using hEq.symm
-      simpa [hAB] using B.2
+      simp [hAB, B.2]
     · intro hA
       refine Finset.mem_image.mpr ?_
       refine ⟨rep ⟨A, hA⟩, ?_, ?_⟩
@@ -493,5 +628,160 @@ theorem exact_one_round_sunflower_theorem
   · intro U hU hcard hSun
     exact sunflower_card_le_oneRoundSunflowerBound hU hcard hSun
   · exact exists_sunflower_card_eq_oneRoundSunflowerBound
+
+theorem kernelFiber_card_eq_strippedMultiplicity (H : Finset (Finset α)) (K : Finset α) :
+    (kernelFiber H K).card = strippedMultiplicity H K := by
+  simp [kernelFiber, strippedMultiplicity]
+
+/-- If `H` is `k`-sunflower-free, then no stripping fiber has `k` distinct preimages. -/
+theorem strippedMultiplicity_le_pred_of_sunflowerFree
+    {H : Finset (Finset α)} {k : ℕ} (hfree : SunflowerFree H k) (K : Finset α) :
+    strippedMultiplicity H K ≤ k - 1 := by
+  classical
+  rw [← kernelFiber_card_eq_strippedMultiplicity]
+  by_contra hle
+  have hk_le : k ≤ (kernelFiber H K).card := by omega
+  obtain ⟨f, hf_range⟩ :=
+    Function.Embedding.exists_of_card_le_finset (α := Fin k) (s := kernelFiber H K)
+      (by simpa using hk_le)
+  let A : Fin k → Finset α := fun i => f i
+  have hA_mem_fiber : ∀ i : Fin k, A i ∈ kernelFiber H K := by
+    intro i
+    exact hf_range (Set.mem_range_self i)
+  have hA_mem : ∀ i : Fin k, A i ∈ H := by
+    intro i
+    exact (Finset.mem_filter.mp (hA_mem_fiber i)).1
+  have hA_strip : ∀ i : Fin k, strippedEdge H (A i) = K := by
+    intro i
+    exact (Finset.mem_filter.mp (hA_mem_fiber i)).2
+  have hA_inj : Function.Injective A := by
+    intro i j hij
+    exact f.injective hij
+  have hSun : IsSunflowerTuple A := by
+    intro i j i' j' hij hi'j'
+    have hne : A i ≠ A j := by
+      intro hEq
+      exact hij (hA_inj hEq)
+    have hne' : A i' ≠ A j' := by
+      intro hEq
+      exact hi'j' (hA_inj hEq)
+    calc
+      A i ∩ A j = K :=
+        stripped_duplicate_intersection (hA_mem i) (hA_mem j) hne
+          (hA_strip i) (hA_strip j)
+      _ = A i' ∩ A j' := by
+        symm
+        exact stripped_duplicate_intersection (hA_mem i') (hA_mem j') hne'
+          (hA_strip i') (hA_strip j')
+  exact hfree A hA_mem hA_inj hSun
+
+/-- Stripping preserves sunflower-freeness: every sunflower downstairs lifts by choosing one
+preimage per stripped edge. -/
+theorem SunflowerFree.strippedSupportFamily
+    {H : Finset (Finset α)} {k : ℕ} (hfree : SunflowerFree H k) :
+    SunflowerFree (strippedSupportFamily H) k := by
+  classical
+  intro A hA hInj hSun
+  let pre : Fin k → Finset α := fun i =>
+    Classical.choose (mem_strippedSupportFamily_iff.mp (hA i))
+  have hpre_mem : ∀ i, pre i ∈ H := fun i =>
+    (Classical.choose_spec (mem_strippedSupportFamily_iff.mp (hA i))).1
+  have hpre_strip : ∀ i, strippedEdge H (pre i) = A i := fun i =>
+    (Classical.choose_spec (mem_strippedSupportFamily_iff.mp (hA i))).2
+  have hpre_inj : Function.Injective pre := by
+    intro i j hij
+    apply hInj
+    simpa [hpre_strip i, hpre_strip j] using congrArg (strippedEdge H) hij
+  have hpre_sun : IsSunflowerTuple pre := by
+    intro i j i' j' hij hi'j'
+    have hpre_ne : pre i ≠ pre j := hpre_inj.ne hij
+    have hpre_ne' : pre i' ≠ pre j' := hpre_inj.ne hi'j'
+    calc
+      pre i ∩ pre j = strippedEdge H (pre i) ∩ strippedEdge H (pre j) :=
+        pairwise_intersection_stripped_eq (hpre_mem i) (hpre_mem j) hpre_ne
+      _ = A i ∩ A j := by simp [hpre_strip]
+      _ = A i' ∩ A j' := hSun hij hi'j'
+      _ = strippedEdge H (pre i') ∩ strippedEdge H (pre j') := by simp [hpre_strip]
+      _ = pre i' ∩ pre j' := by
+        symm
+        exact pairwise_intersection_stripped_eq (hpre_mem i') (hpre_mem j') hpre_ne'
+  exact hfree pre hpre_mem hpre_inj hpre_sun
+
+/-- Sunflower-freeness is preserved at every iterated stripping stage. -/
+theorem SunflowerFree.iteratedStripping
+    {H : Finset (Finset α)} {k : ℕ} (hfree : SunflowerFree H k) :
+    ∀ t : ℕ, SunflowerFree (iteratedStripping H t) k := by
+  intro t
+  induction t with
+  | zero => simpa using hfree
+  | succ t ih =>
+      simpa using ih.strippedSupportFamily
+
+/-- Exact fiber decomposition for the one-round stripping map. -/
+theorem card_eq_sum_strippedMultiplicity (H : Finset (Finset α)) :
+    H.card = ∑ K ∈ strippedSupportFamily H, strippedMultiplicity H K := by
+  classical
+  let f : Finset α → Finset α := strippedEdge H
+  have hcover :
+      (H.image f).biUnion (fun K => H.filter fun e => f e = K) = H := by
+    ext e
+    constructor
+    · intro he
+      rcases Finset.mem_biUnion.mp he with ⟨K, hK, heK⟩
+      exact (Finset.mem_filter.mp heK).1
+    · intro he
+      exact Finset.mem_biUnion.mpr
+        ⟨f e, Finset.mem_image.mpr ⟨e, he, rfl⟩, Finset.mem_filter.mpr ⟨he, rfl⟩⟩
+  have hdisj :
+      ((H.image f : Finset (Finset α)) : Set (Finset α)).PairwiseDisjoint
+        (fun K => H.filter fun e => f e = K) := by
+    intro K hK L hL hKL
+    change Disjoint (H.filter fun e => f e = K) (H.filter fun e => f e = L)
+    rw [Finset.disjoint_left]
+    intro e heK heL
+    have hfK : f e = K := (Finset.mem_filter.mp heK).2
+    have hfL : f e = L := (Finset.mem_filter.mp heL).2
+    exact hKL (hfK.symm.trans hfL)
+  calc
+    H.card = ((H.image f).biUnion fun K => H.filter fun e => f e = K).card := by
+      rw [hcover]
+    _ = ∑ K ∈ H.image f, (H.filter fun e => f e = K).card := by
+      exact Finset.card_biUnion hdisj
+    _ = ∑ K ∈ strippedSupportFamily H, strippedMultiplicity H K := by
+      rfl
+
+/-- One stripping round loses at most a factor `k - 1` on a `k`-sunflower-free family. -/
+theorem card_le_mul_card_strippedSupportFamily_of_sunflowerFree
+    {H : Finset (Finset α)} {k : ℕ} (hfree : SunflowerFree H k) :
+    H.card ≤ (k - 1) * (strippedSupportFamily H).card := by
+  rw [card_eq_sum_strippedMultiplicity H]
+  calc
+    (∑ K ∈ strippedSupportFamily H, strippedMultiplicity H K)
+        ≤ ∑ K ∈ strippedSupportFamily H, (k - 1) := by
+          exact Finset.sum_le_sum (fun K hK =>
+            strippedMultiplicity_le_pred_of_sunflowerFree hfree K)
+    _ = (k - 1) * (strippedSupportFamily H).card := by
+          simp [Nat.mul_comm]
+
+/-- Iterating the one-round bound gives the sharp family-level loss factor. -/
+theorem card_le_pow_mul_card_iteratedStripping_of_sunflowerFree
+    {H : Finset (Finset α)} {k : ℕ} (hfree : SunflowerFree H k) :
+    ∀ t : ℕ, H.card ≤ (k - 1) ^ t * (iteratedStripping H t).card := by
+  intro t
+  induction t with
+  | zero => simp
+  | succ t ih =>
+      have hstep :
+          (iteratedStripping H t).card ≤
+            (k - 1) * (iteratedStripping H (t + 1)).card := by
+        simpa using
+          card_le_mul_card_strippedSupportFamily_of_sunflowerFree
+            ((hfree.iteratedStripping t))
+      calc
+        H.card ≤ (k - 1) ^ t * (iteratedStripping H t).card := ih
+        _ ≤ (k - 1) ^ t * ((k - 1) * (iteratedStripping H (t + 1)).card) := by
+          exact Nat.mul_le_mul_left _ hstep
+        _ = (k - 1) ^ (t + 1) * (iteratedStripping H (t + 1)).card := by
+          ring
 
 end FormalConjectures.Problems.Erdos.E20

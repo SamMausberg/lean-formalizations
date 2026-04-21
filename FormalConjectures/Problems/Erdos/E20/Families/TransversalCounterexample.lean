@@ -270,6 +270,130 @@ def restrictionFiber {r : ℕ} (S : Finset (Fin r)) (b : G) (a : S → G) :
     Finset (Fin r → G) :=
   (sumSlice (G := G) (r := r) b).filter fun x => ∀ i : S, x i = a i
 
+omit [DecidableEq G] [Fintype G] in
+private theorem sum_univ_eq_sum_subtype_add_sum_compl {r : ℕ} (S : Finset (Fin r))
+    (f : Fin r → G) :
+    ∑ i : Fin r, f i = (∑ i : S, f i) + ∑ i : (Sᶜ : Finset (Fin r)), f i := by
+  calc
+    ∑ i : Fin r, f i = (∑ i ∈ S, f i) + ∑ i ∈ Sᶜ, f i := by
+      rw [Finset.sum_add_sum_compl]
+    _ = (∑ i : S, f i) + ∑ i : (Sᶜ : Finset (Fin r)), f i := by
+      rw [Finset.sum_coe_sort, Finset.sum_coe_sort]
+
+/-- After fixing an arbitrary coordinate set `S` in a sum-slice, the remaining fiber is
+equivalent to a lower-dimensional sum-slice on the complement of `S`. -/
+noncomputable def restrictionFiberEquiv {r : ℕ} (S : Finset (Fin r)) (b : G)
+    (a : S → G) :
+    ↥(restrictionFiber (G := G) S b a) ≃
+      ↥(Finset.univ.filter fun y : (Sᶜ : Finset (Fin r)) → G =>
+        ∑ i, y i = b - ∑ i, a i) where
+  toFun x := by
+    refine ⟨fun i => x.1 i, ?_⟩
+    rcases Finset.mem_filter.mp x.2 with ⟨hxmem, hfixed⟩
+    have hxsum : ∑ i : Fin r, x.1 i = b := by
+      exact (Finset.mem_filter.mp hxmem).2
+    have hSsum : ∑ i : S, x.1 i = ∑ i : S, a i := by
+      exact Finset.sum_congr rfl (fun i _ => hfixed i)
+    have hsplit := sum_univ_eq_sum_subtype_add_sum_compl (G := G) S x.1
+    have htail : ∑ i : (Sᶜ : Finset (Fin r)), x.1 i = b - ∑ i : S, a i := by
+      apply eq_sub_iff_add_eq.mpr
+      calc
+        (∑ i : (Sᶜ : Finset (Fin r)), x.1 i) + ∑ i : S, a i
+            = (∑ i : S, a i) + ∑ i : (Sᶜ : Finset (Fin r)), x.1 i := by
+              abel
+        _ = (∑ i : S, x.1 i) + ∑ i : (Sᶜ : Finset (Fin r)), x.1 i := by
+              rw [hSsum]
+        _ = ∑ i : Fin r, x.1 i := by simpa [add_comm] using hsplit.symm
+        _ = b := hxsum
+    exact Finset.mem_filter.mpr ⟨Finset.mem_univ _, htail⟩
+  invFun y := by
+    let z : Fin r → G := fun i =>
+      if h : i ∈ S then a ⟨i, h⟩ else y.1 ⟨i, Finset.mem_compl.mpr h⟩
+    refine ⟨z, ?_⟩
+    refine Finset.mem_filter.mpr ?_
+    constructor
+    · have hysum : ∑ i : (Sᶜ : Finset (Fin r)), y.1 i = b - ∑ i : S, a i := by
+        exact (Finset.mem_filter.mp y.2).2
+      have hSsum : ∑ i : S, z i = ∑ i : S, a i := by
+        refine Finset.sum_congr rfl ?_
+        intro i _
+        simp [z, i.2]
+      have hCsum :
+          ∑ i : (Sᶜ : Finset (Fin r)), z i =
+            ∑ i : (Sᶜ : Finset (Fin r)), y.1 i := by
+        refine Finset.sum_congr rfl ?_
+        intro i _
+        have hnot : (i : Fin r) ∉ S := Finset.mem_compl.mp i.2
+        simp [z, hnot]
+      have hsplit := sum_univ_eq_sum_subtype_add_sum_compl (G := G) S z
+      have hzsum : ∑ i : Fin r, z i = b := by
+        calc
+          ∑ i : Fin r, z i = (∑ i : S, z i) + ∑ i : (Sᶜ : Finset (Fin r)), z i :=
+            hsplit
+          _ = (∑ i : S, a i) + ∑ i : (Sᶜ : Finset (Fin r)), y.1 i := by
+              rw [hSsum, hCsum]
+          _ = (∑ i : S, a i) + (b - ∑ i : S, a i) := by rw [hysum]
+          _ = b := by abel
+      simpa [sumSlice] using hzsum
+    · intro i
+      simp [z, i.2]
+  left_inv x := by
+    rcases Finset.mem_filter.mp x.2 with ⟨_, hfixed⟩
+    apply Subtype.ext
+    funext i
+    by_cases hi : i ∈ S
+    · simp [hi, (hfixed ⟨i, hi⟩).symm]
+    · simp [hi]
+  right_inv y := by
+    apply Subtype.ext
+    funext i
+    have hnot : (i : Fin r) ∉ S := Finset.mem_compl.mp i.2
+    simp [hnot]
+
+/-- Fixing any proper coordinate subset of a sum-slice leaves exactly one affine constraint on
+the complementary coordinates. -/
+@[simp] theorem card_restrictionFiber {r : ℕ} (S : Finset (Fin r)) (b : G)
+    (a : S → G) (hS : S.card < r) :
+    (restrictionFiber (G := G) S b a).card = Fintype.card G ^ (r - S.card - 1) := by
+  classical
+  let T : Finset (Fin r) := Sᶜ
+  have hTpos : 0 < Fintype.card ↥T := by
+    change 0 < Fintype.card ↥(Sᶜ : Finset (Fin r))
+    rw [Fintype.card_coe, Finset.card_compl, Fintype.card_fin]
+    omega
+  have hTcard : Fintype.card ↥T = r - S.card := by
+    change Fintype.card ↥(Sᶜ : Finset (Fin r)) = r - S.card
+    rw [Fintype.card_coe, Finset.card_compl, Fintype.card_fin]
+  calc
+    (restrictionFiber (G := G) S b a).card
+        = Fintype.card ↥(restrictionFiber (G := G) S b a) := by
+          rw [Fintype.card_coe]
+    _ = Fintype.card ↥(Finset.univ.filter fun y : T → G =>
+          ∑ i, y i = b - ∑ i, a i) := by
+        exact Fintype.card_congr (restrictionFiberEquiv (G := G) S b a)
+    _ = (Finset.univ.filter fun y : T → G => ∑ i, y i = b - ∑ i, a i).card := by
+        rw [Fintype.card_coe]
+    _ = Fintype.card G ^ (Fintype.card ↥T - 1) := by
+        simpa using card_sumSlice_fintype (G := G) T (b - ∑ i : S, a i) hTpos
+    _ = Fintype.card G ^ (r - S.card - 1) := by
+        rw [hTcard]
+
+/-- Every prescribed pattern on a proper coordinate subset occurs in the corresponding
+sum-slice. -/
+theorem restrictionFiber_nonempty_of_card_lt {r : ℕ} (S : Finset (Fin r)) (b : G)
+    (a : S → G) (hS : S.card < r) :
+    (restrictionFiber (G := G) S b a).Nonempty := by
+  rw [← Finset.card_pos, card_restrictionFiber (G := G) S b a hS]
+  exact Nat.pow_pos (Fintype.card_pos_iff.mpr ⟨0⟩)
+
+/-- The projection of a sum-slice onto any proper coordinate subset is onto. -/
+theorem sumSlice_restriction_surjective {r : ℕ} (S : Finset (Fin r)) (b : G)
+    (a : S → G) (hS : S.card < r) :
+    ∃ x ∈ sumSlice (G := G) (r := r) b, ∀ i : S, x i = a i := by
+  rcases restrictionFiber_nonempty_of_card_lt (G := G) S b a hS with ⟨x, hx⟩
+  rcases Finset.mem_filter.mp hx with ⟨hxsum, hfixed⟩
+  exact ⟨x, hxsum, hfixed⟩
+
 /-- The fiber of a sum-slice after fixing an initial block of `s` coordinates.
 
 This is the prefix-specialized version of the higher-order marginal fibers discussed in the user's
@@ -401,6 +525,45 @@ noncomputable def sumSliceFiberEquiv (n : ℕ) (b : G) (p : Fin (n + 2)) (a : G)
 @[simp] theorem card_paritySlice (n : ℕ) :
     (paritySlice (G := G) (r := n + 1)).card = Fintype.card G ^ n := by
   simpa [paritySlice] using card_sumSlice (G := G) n (0 : G)
+
+/-- Cardinality of a nonzero-dimensional parity slice, indexed by the actual dimension. -/
+@[simp] theorem card_paritySlice_of_pos {r : ℕ} (hr : 0 < r) :
+    (paritySlice (G := G) (r := r)).card = Fintype.card G ^ (r - 1) := by
+  have hrw : r = (r - 1) + 1 := by omega
+  calc
+    (paritySlice (G := G) (r := r)).card
+        = (paritySlice (G := G) (r := (r - 1) + 1)).card := by
+          exact congrArg (fun m => (paritySlice (G := G) (r := m)).card) hrw
+    _ = Fintype.card G ^ (r - 1) := card_paritySlice (G := G) (r - 1)
+
+/-- The arbitrary proper-subset fiber count for the parity slice. -/
+@[simp] theorem card_paritySlice_restrictionFiber {r : ℕ} (S : Finset (Fin r))
+    (a : S → G) (hS : S.card < r) :
+    (restrictionFiber (G := G) S 0 a).card = Fintype.card G ^ (r - S.card - 1) := by
+  simpa using card_restrictionFiber (G := G) S (0 : G) a hS
+
+/-- The projection of the parity slice onto any proper coordinate subset is all of `G^S`. -/
+theorem paritySlice_restriction_surjective {r : ℕ} (S : Finset (Fin r))
+    (a : S → G) (hS : S.card < r) :
+    ∃ x ∈ paritySlice (G := G) (r := r), ∀ i : S, x i = a i := by
+  simpa [paritySlice] using sumSlice_restriction_surjective (G := G) S (0 : G) a hS
+
+/-- Every proper-coordinate marginal of the parity slice is exactly uniform. -/
+theorem paritySlice_restriction_uniform {r : ℕ} (S : Finset (Fin r))
+    (a : S → G) (hS : S.card < r) :
+    ((restrictionFiber (G := G) S 0 a).card : ℚ) /
+        (paritySlice (G := G) (r := r)).card =
+      1 / (Fintype.card G : ℚ) ^ S.card := by
+  let q : ℚ := Fintype.card G
+  have hq : q ≠ 0 := by
+    norm_num [q]
+  have hr : 0 < r := by omega
+  rw [card_paritySlice_of_pos (G := G) hr, card_paritySlice_restrictionFiber (G := G) S a hS]
+  have hpow : r - 1 = S.card + (r - S.card - 1) := by omega
+  have hratio : q ^ (r - S.card - 1) / q ^ (r - 1) = 1 / q ^ S.card := by
+    rw [hpow, pow_add]
+    field_simp [hq, pow_ne_zero _ hq]
+  simpa [q, Nat.cast_pow] using hratio
 
 @[simp] theorem paritySlice_coordinateCount (n : ℕ) (p : Fin (n + 2)) (a : G) :
     coordinateCount (paritySlice (G := G) (r := n + 2)) p a = Fintype.card G ^ n := by

@@ -199,6 +199,37 @@ theorem card_le_vertexDegree_bound_of_small_maximalMatching
     _ = (k - 1) * (s * (Δ - 1) + 1) := by
       ring
 
+/-- In an `s`-uniform degree-two family, each edge meets at most `s` other edges. -/
+theorem edgeOverlapSet_card_le_degree_two
+    {J : Finset (Finset α)} {s : Nat}
+    (huniform : IsRUniform J s) (hΔ : MaxVertexDegreeAtMost J 2)
+    {e : Finset α} (heJ : e ∈ J) :
+    (edgeOverlapSet J e).card ≤ s := by
+  simpa using edgeOverlapSet_card_le_uniform_degree
+    (J := J) (s := s) (Δ := 2) huniform hΔ heJ
+
+/-- If `M` is a maximal matching in an `s`-uniform degree-two family `J`, then
+`|J| ≤ (s + 1) |M|`.
+
+This packages the degree-two row of the bounded-degree kernel theorem. -/
+theorem card_le_degreeTwo_bound_of_maximalMatching
+    {J M : Finset (Finset α)} {s : Nat}
+    (huniform : IsRUniform J s) (hΔ : MaxVertexDegreeAtMost J 2)
+    (hM : IsMaximalMatchingIn J M) :
+    J.card ≤ (s + 1) * M.card := by
+  simpa using card_le_vertexDegree_bound_of_maximalMatching
+    (J := J) (M := M) (s := s) (Δ := 2) huniform hΔ hM
+
+/-- If an `s`-uniform degree-two kernel has a maximal matching witness of size at most `k - 1`,
+then `|J| ≤ (k - 1)(s + 1)`. -/
+theorem card_le_degreeTwo_bound_of_small_maximalMatching
+    {J M : Finset (Finset α)} {s k : Nat}
+    (huniform : IsRUniform J s) (hΔ : MaxVertexDegreeAtMost J 2)
+    (hM : IsMaximalMatchingIn J M) (hMk : M.card ≤ k - 1) :
+    J.card ≤ (k - 1) * (s + 1) := by
+  simpa using card_le_vertexDegree_bound_of_small_maximalMatching
+    (J := J) (M := M) (s := s) (Δ := 2) (k := k) huniform hΔ hM hMk
+
 end E20
 end Erdos
 end Problems

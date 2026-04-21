@@ -312,17 +312,17 @@ def twoStateCounterexample : EdgeShift (Q := TwoState) (E := TwoEdge) where
 set_option linter.style.nativeDecide false in
 @[simp] theorem continuationCount_twoState_zero_one :
     twoStateCounterexample.continuationCount 1 TwoState.zero = 2 := by
-  native_decide
+  decide
 
 set_option linter.style.nativeDecide false in
 @[simp] theorem continuationCount_twoState_zero_two :
     twoStateCounterexample.continuationCount 2 TwoState.zero = 2 := by
-  native_decide
+  decide
 
 set_option linter.style.nativeDecide false in
 @[simp] theorem continuationCount_twoState_one_one :
     twoStateCounterexample.continuationCount 1 TwoState.one = 1 := by
-  native_decide
+  decide
 
 /-- Every one-edge prefix from state `0` has exactly half the total length-`2`
 continuation count. -/

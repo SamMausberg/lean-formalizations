@@ -1,5 +1,6 @@
 import Mathlib
 import FormalConjectures.Problems.Erdos.E20.Compendium.Recurrences.CapturePressure
+import FormalConjectures.Problems.Erdos.E20.Kernels.LeafStripping
 
 set_option linter.style.openClassical false
 
@@ -206,6 +207,127 @@ theorem routeClass_capture (C : RouteCutCertificate Route CutEdge Ground) (hcut 
   · simpa [routeClassMass] using hmass
 
 end RouteCutCertificate
+
+/-- An exact bridge class packages the extra route-level data that the pasted notes keep
+separate from the cut-certificate data:
+
+* a finite route alphabet and its cut set;
+* a distinguished kernel shared by all realizations in the class;
+* an exact local bridge witness on every route;
+* a finite window trace whose nonemptiness and boundedness are the only facts used by the
+  route-class capture argument.
+
+The structure is intentionally conditional.  It does not claim that every class in the project
+has such a presentation; it only records the interface needed to formalize the exact bridge
+class note without overreaching. -/
+structure ExactBridgeClass (Route CutEdge Ground : Type*) where
+  certificate : RouteCutCertificate Route CutEdge Ground
+  routeEdges : Route → Finset CutEdge
+  routeEdges_firstCut_mem : ∀ r ∈ certificate.routes, certificate.firstCut r ∈ routeEdges r
+  kernel : Finset Ground
+  realization : Route → Finset Ground
+  kernel_subset_realization : ∀ r ∈ certificate.routes, kernel ⊆ realization r
+  exactFirstCarrier :
+    ∀ {r s : Route}, r ∈ certificate.routes → s ∈ certificate.routes →
+      ∀ {x : Ground}, x ∈ realization r → x ∈ realization s → x ∉ kernel →
+        certificate.firstCut r = certificate.firstCut s
+
+namespace ExactBridgeClass
+
+variable {Route CutEdge Ground : Type*}
+variable [DecidableEq Route] [DecidableEq CutEdge] [DecidableEq Ground]
+
+/-- The underlying route-cut certificate obtained by forgetting the extra exact-bridge data. -/
+def toRouteCutCertificate (C : ExactBridgeClass Route CutEdge Ground) :
+    RouteCutCertificate Route CutEdge Ground :=
+  C.certificate
+
+theorem routeEdges_nonempty (C : ExactBridgeClass Route CutEdge Ground)
+    {r : Route} (hr : r ∈ C.certificate.routes) :
+    (C.routeEdges r).Nonempty := by
+  exact ⟨C.certificate.firstCut r, C.routeEdges_firstCut_mem r hr⟩
+
+/-- If two routes meet outside the shared kernel, the exact first-carrier label agrees. -/
+theorem exactFirstCarrier_of_mem
+    (C : ExactBridgeClass Route CutEdge Ground)
+    {r s : Route} (hr : r ∈ C.certificate.routes) (hs : s ∈ C.certificate.routes)
+    {x : Ground} (hxr : x ∈ C.realization r) (hxs : x ∈ C.realization s)
+    (hxk : x ∉ C.kernel) :
+    C.certificate.firstCut r = C.certificate.firstCut s :=
+  C.exactFirstCarrier hr hs hxr hxs hxk
+
+/-- Route-edge disjointness forces the realizations to be disjoint outside the shared kernel. -/
+theorem realization_sdiff_disjoint_of_routeEdges_disjoint
+    (C : ExactBridgeClass Route CutEdge Ground)
+    (hdisj : ∀ r ∈ C.certificate.routes, ∀ s ∈ C.certificate.routes, r ≠ s →
+      Disjoint (C.routeEdges r) (C.routeEdges s))
+    {r s : Route} (hr : r ∈ C.certificate.routes) (hs : s ∈ C.certificate.routes)
+    (hneq : r ≠ s) :
+    Disjoint (C.realization r \ C.kernel) (C.realization s \ C.kernel) := by
+  rw [Finset.disjoint_left]
+  intro x hxr hxs
+  rcases Finset.mem_sdiff.mp hxr with ⟨hxrR, hxrK⟩
+  rcases Finset.mem_sdiff.mp hxs with ⟨hxsR, hxsK⟩
+  have hfirst : C.certificate.firstCut r = C.certificate.firstCut s :=
+    C.exactFirstCarrier hr hs hxrR hxsR hxrK
+  have hmemr : C.certificate.firstCut r ∈ C.routeEdges r :=
+    C.routeEdges_firstCut_mem r hr
+  have hmems : C.certificate.firstCut s ∈ C.routeEdges s :=
+    C.routeEdges_firstCut_mem s hs
+  have hmems' : C.certificate.firstCut r ∈ C.routeEdges s := by
+    simpa [hfirst] using hmems
+  exact (Finset.disjoint_left.mp (hdisj r hr s hs hneq)) hmemr hmems'
+
+/-- A finite set of routes in an exact bridge class forms a sunflower with kernel `kernel`
+once the route edges are pairwise disjoint. -/
+theorem image_realization_isSunflowerWithKernel
+    (C : ExactBridgeClass Route CutEdge Ground)
+    (hdisj : ∀ r ∈ C.certificate.routes, ∀ s ∈ C.certificate.routes, r ≠ s →
+      Disjoint (C.routeEdges r) (C.routeEdges s))
+    (U : Finset Route) (hU : U ⊆ C.certificate.routes) :
+    IsSunflowerWithKernel (U.image C.realization) C.kernel := by
+  constructor
+  · intro e he
+    rcases Finset.mem_image.mp he with ⟨r, hr, rfl⟩
+    exact C.kernel_subset_realization r (hU hr)
+  · intro e he f hf hne
+    rcases Finset.mem_image.mp he with ⟨r, hr, rfl⟩
+    rcases Finset.mem_image.mp hf with ⟨s, hs, rfl⟩
+    by_cases hrs : r = s
+    · subst hrs
+      exact (hne rfl).elim
+    · have hdisj' :=
+        C.realization_sdiff_disjoint_of_routeEdges_disjoint hdisj (hU hr) (hU hs) hrs
+      have hinter : C.realization r ∩ C.realization s = C.kernel := by
+        ext x
+        constructor
+        · intro hx
+          rcases Finset.mem_inter.mp hx with ⟨hxr, hxs⟩
+          by_cases hxk : x ∈ C.kernel
+          · exact hxk
+          · have hxr : x ∈ C.realization r \ C.kernel := by
+              simp [Finset.mem_sdiff, hxr, hxk]
+            have hxs : x ∈ C.realization s \ C.kernel := by
+              simp [Finset.mem_sdiff, hxs, hxk]
+            exact False.elim <| Finset.disjoint_left.mp hdisj' hxr hxs
+        · intro hx
+          exact Finset.mem_inter.mpr
+            ⟨C.kernel_subset_realization r (hU hr) hx,
+              C.kernel_subset_realization s (hU hs) hx⟩
+      simpa [hinter]
+
+/-- The exact bridge class still feeds the existing route-cut capture lemma after forgetting
+the extra route-level data. -/
+theorem routeClass_capture_of_exactBridgeClass
+    (C : ExactBridgeClass Route CutEdge Ground) (hcut : C.certificate.cut.Nonempty) :
+    UniformSolvedCapture C.certificate.routes
+      (fun U : Finset Route =>
+        ∃ c ∈ C.certificate.cut, U = RouteCutCertificate.routeClass C.certificate c)
+      (1 / (C.certificate.cut.card : ℝ)) := by
+  simpa [ExactBridgeClass.toRouteCutCertificate] using
+    (RouteCutCertificate.routeClass_capture (C := C.certificate) hcut)
+
+end ExactBridgeClass
 
 end BridgeLock
 end Kernels

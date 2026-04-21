@@ -238,6 +238,31 @@ abbrev pasted_terminal_kernel_class_bound
     (C : Finset (Finset α) → Prop) (k : ℕ) (A : ℝ) : Prop :=
   HasTerminalKernelClassBound C k A
 
+/-- Informal declaration from the pasted pruning note:
+failure of hereditary faithfulness exactifies to a strict unresolved descendant. -/
+theorem pasted_exact_support_pruning_exactify
+    {Node : Type*} (C : ExactSupportPruningContext Node)
+    {x : Node} (hx : C.Unresolved x) (hfaith : ¬ C.HereditarilyFaithful x) :
+    ∃ y : Node, C.StrictDescendant y x ∧ C.Unresolved y :=
+  C.exactify hx hfaith
+
+/-- Informal declaration from the pasted pruning note:
+a nonempty unresolved region contains a terminal unresolved node, and that node
+is hereditarily faithful. -/
+theorem pasted_exact_support_pruning_terminal_and_faithful
+    {Node : Type*} (C : ExactSupportPruningContext Node)
+    (h : ∃ x : Node, C.Unresolved x) :
+    ∃ x : Node, C.Unresolved x ∧ C.Terminal x ∧ C.HereditarilyFaithful x :=
+  C.exists_terminal_unresolved_and_faithful h
+
+/-- Informal declaration from the pasted child-gluing note:
+if every indexed child witness is solved, then the parent is solved. -/
+theorem pasted_child_gluing_parent_solved
+    {Parent Index : Type*} (C : Kernels.ChildGluingContext Parent Index)
+    {p : Parent} (h : ∀ i : Index, C.ChildSolved p i) :
+    C.ParentSolved p :=
+  C.parent_solved_of_children h
+
 /-- Informal declaration from the pasted terminal-kernel reduction note:
 if the stripped terminal kernel has rank `m ≤ n`, satisfies the exact reduction factor, and has
 size at most `A^m`, then `|H| ≤ ((k - 1) A)^n`. -/

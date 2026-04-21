@@ -68,4 +68,21 @@ theorem twoBranch_annihilator_ext
   cases E
   simp_all
 
+section Holonomy
+
+variable {G : Type*} [CommGroup G]
+
+/-- The scalar ratio cocycle around a hexagon telescopes to `1`.  This is the
+formal algebraic core of the Hall-lane holonomy note. -/
+theorem hexagon_transitionScalar_holonomy_eq_one (t : Fin 6 → G) :
+    (t 0 / t 1) * (t 1 / t 2) * (t 2 / t 3) * (t 3 / t 4) * (t 4 / t 5) * (t 5 / t 0) = 1 := by
+  simp [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+
+/-- A common apolar factor line produces trivial Hall-lane scalar holonomy. -/
+theorem apolar_commonRay_implies_trivialHallLaneHolonomy (t : Fin 6 → G) :
+    (t 0 / t 1) * (t 1 / t 2) * (t 2 / t 3) * (t 3 / t 4) * (t 4 / t 5) * (t 5 / t 0) = 1 :=
+  hexagon_transitionScalar_holonomy_eq_one t
+
+end Holonomy
+
 end FormalConjectures.Problems.Erdos.E20

@@ -50,7 +50,7 @@ theorem one_switch_extraction_from_ordered_blocks
     (hlarge : ∀ r, m ≤ (block r).card)
     (hordered : ∀ ⦃r s : Fin m⦄, r < s →
       ∀ x ∈ block r, ∀ y ∈ block s, x < y) :
-    ∃ I : Finset ℕ, m ≤ I.card ∧
+    ∃ I : Finset ℕ, I ⊆ (Finset.univ : Finset (Fin m)).biUnion block ∧ m ≤ I.card ∧
       ((∀ x ∈ I, ∀ y ∈ I, x < y → R x y) ∨
         ∀ x ∈ I, ∀ y ∈ I, x < y → ¬ R x y) := by
   classical
@@ -58,9 +58,11 @@ theorem one_switch_extraction_from_ordered_blocks
       ∃ r : Fin m, ∀ x ∈ block r, ∀ y ∈ block r, x < y → ¬ R x y
   · rcases hfalseBlock with ⟨r, hrfalse⟩
     rcases exists_subset_card_eq (hlarge r) with ⟨I, hIsub, hIcard⟩
-    refine ⟨I, by omega, Or.inr ?_⟩
-    intro x hx y hy hxy
-    exact hrfalse x (hIsub hx) y (hIsub hy) hxy
+    refine ⟨I, ?_, by omega, Or.inr ?_⟩
+    · intro x hx
+      exact mem_biUnion.mpr ⟨r, mem_univ r, hIsub hx⟩
+    · intro x hx y hy hxy
+      exact hrfalse x (hIsub hx) y (hIsub hy) hxy
   · have htrueBlock :
         ∀ r : Fin m, ∃ a ∈ block r, ∃ w ∈ block r, a < w ∧ R a w := by
       intro r
@@ -78,7 +80,10 @@ theorem one_switch_extraction_from_ordered_blocks
         omega
       · have hlt : a s < a r := hordered hsr_lt (a s) (ha s) (a r) (ha r)
         omega
-    refine ⟨I, ?_, Or.inl ?_⟩
+    refine ⟨I, ?_, ?_, Or.inl ?_⟩
+    · intro x hx
+      rcases mem_image.mp hx with ⟨r, _hr, rfl⟩
+      exact mem_biUnion.mpr ⟨r, mem_univ r, ha r⟩
     · change m ≤ (Finset.univ.image a).card
       rw [card_image_of_injOn hainj, card_univ, Fintype.card_fin]
     · intro x hx y hy hxy
